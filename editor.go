@@ -20,7 +20,7 @@ var textBuffer = [][]rune{
 
 var inputBuffer []rune
 
-var lineCountWidth = 4
+var lineCountWidth = 3
 
 func runEditor() {
 	bootErr := termbox.Init()
@@ -58,6 +58,7 @@ func mainEditorLoop() {
 	for {
 		COLS, ROWS = termbox.Size()
 		ROWS -= 2 // Set current terminal size
+		COLS -= 3
 		if COLS < 78 {
 			COLS = 78
 		}

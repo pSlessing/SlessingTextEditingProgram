@@ -12,7 +12,12 @@ func inputHandling() {
 	event := termbox.PollEvent()
 
 	if event.Type == termbox.EventKey {
-		inputBuffer = append(inputBuffer, event.Ch)
+		if event.Key == termbox.KeyEnter {
+			handleCommand()
+		} else {
+			inputBuffer = append(inputBuffer, event.Ch)
+		}
+
 	}
 
 	if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
@@ -76,12 +81,7 @@ func displayBuffer() {
 	for row = 0; row < ROWS; row++ {
 		textBufferRow := row + offsetY
 
-		// Display line numbers
-		if textBufferRow < len(textBuffer) {
-			lineNumberOffset := lineCountWidth - len(strconv.Itoa(textBufferRow+1)) - 1
-			printMessage(lineNumberOffset, row,
-				termbox.ColorCyan, termbox.ColorWhite, strconv.Itoa(textBufferRow+1))
-		}
+		displayLineNumber(row, textBufferRow)
 
 		for col = 0; col < COLS; col++ {
 			textBufferCol := col + offsetX
@@ -110,4 +110,27 @@ func displayStatus() {
 				termbox.ColorBlack, termbox.ColorWhite)
 		}
 	}
+}
+
+func displayLineNumber(row int, textBufferRow int) {
+
+	// Display line numbers for all visible rows
+	lineNumberStr := "~"
+	lineNumberColor := termbox.ColorCyan
+	bgColor := termbox.ColorWhite
+
+	if textBufferRow < len(textBuffer) {
+		lineNumberStr = strconv.Itoa(textBufferRow + 1)
+		lineNumberColor = termbox.ColorCyan
+		bgColor = termbox.ColorWhite
+	}
+
+	lineNumberOffset := lineCountWidth - len(lineNumberStr)
+	if lineNumberOffset > 0 {
+		for i := 0; i < lineNumberOffset; i++ {
+			termbox.SetCell(i, row, ' ', lineNumberColor, bgColor)
+		}
+	}
+
+	printMessage(lineNumberOffset, row, lineNumberColor, bgColor, lineNumberStr)
 }
