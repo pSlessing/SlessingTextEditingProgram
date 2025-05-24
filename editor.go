@@ -18,6 +18,8 @@ var textBuffer = [][]rune{
 	{'w', 'o', 'r', 'l', 'd'},
 }
 
+var inputBuffer []rune
+
 var lineCountWidth = 4
 
 func runEditor() {
@@ -37,41 +39,33 @@ func runEditor() {
 }
 
 func titleLoop() {
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	printMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
+	termbox.Flush()
+
 	for {
-		COLS, ROWS = termbox.Size()
-		ROWS-- // Set current terminal size
-		if COLS < 78 {
-			COLS = 78
-		}
-
-		termbox.Flush()
-
+		termbox.HideCursor()
 		event := termbox.PollEvent()
 		if event.Type == termbox.EventKey && event.Key == termbox.KeyEnter {
+			termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+			termbox.Flush()
 			break
 		}
 	}
-	termbox.Flush()
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	termbox.Flush()
 }
 
 func mainEditorLoop() {
 	for {
 		COLS, ROWS = termbox.Size()
-		ROWS-- // Set current terminal size
+		ROWS -= 2 // Set current terminal size
 		if COLS < 78 {
 			COLS = 78
 		}
 
 		displayBuffer()
+		displayStatus()
 		termbox.Flush()
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-
-		event := termbox.PollEvent()
-		if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
-			return
-		}
+		inputHandling()
+		termbox.Flush()
 	}
 }
