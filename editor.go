@@ -70,3 +70,9 @@ func mainEditorLoop() {
 		termbox.Flush()
 	}
 }
+
+func writeLoop() {
+	for {
+
+	}
+}

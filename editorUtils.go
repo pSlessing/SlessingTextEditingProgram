@@ -6,6 +6,7 @@ import (
 	"github.com/nsf/termbox-go"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func inputHandling() {
@@ -27,7 +28,13 @@ func inputHandling() {
 }
 
 func handleCommand() {
-
+	switch strings.ToLower(string(inputBuffer)) {
+	case "quit":
+		termbox.Close()
+		os.Exit(0)
+	case "write":
+		writeLoop()
+	}
 }
 
 func saveCurrentState() {
