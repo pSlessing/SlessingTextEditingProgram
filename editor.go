@@ -8,8 +8,10 @@ import (
 import "github.com/nsf/termbox-go"
 
 var (
-	COLS int
-	ROWS int
+	COLS    int
+	ROWS    int
+	CURSORX int
+	CURSORY int
 )
 var offsetX, offsetY int
 var sourceFile string
@@ -72,7 +74,33 @@ func mainEditorLoop() {
 }
 
 func writeLoop() {
+	CURSORX = lineCountWidth
+	CURSORY = 0
+	termbox.SetCursor(CURSORX, CURSORY)
 	for {
+		event := termbox.PollEvent()
+		if event.Type == termbox.EventKey {
+			switch event.Key {
+			case termbox.KeyArrowUp:
+				CURSORY--
+			case termbox.KeyArrowDown:
+				CURSORY++
+			case termbox.KeyArrowLeft:
+				if CURSORX != lineCountWidth {
+					CURSORX--
+				}
 
+			case termbox.KeyArrowRight:
+				CURSORX++
+
+			case termbox.KeyBackspace, termbox.KeyBackspace2:
+				deleteAtCursor()
+			default:
+				insertRune(event.Ch)
+			}
+		}
+
+		termbox.SetCursor(CURSORX, CURSORY)
+		displayBuffer()
 	}
 }

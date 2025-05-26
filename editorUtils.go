@@ -15,8 +15,13 @@ func inputHandling() {
 	if event.Type == termbox.EventKey {
 		if event.Key == termbox.KeyEnter {
 			handleCommand()
+		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
+			if len(inputBuffer) > 0 {
+				inputBuffer = inputBuffer[:len(inputBuffer)-1]
+			}
 		} else {
 			inputBuffer = append(inputBuffer, event.Ch)
+
 		}
 
 	}
@@ -140,4 +145,12 @@ func displayLineNumber(row int, textBufferRow int) {
 	}
 
 	printMessage(lineNumberOffset, row, lineNumberColor, bgColor, lineNumberStr)
+}
+
+func insertRune(insertrune rune) {
+
+}
+
+func deleteAtCursor() {
+
 }
