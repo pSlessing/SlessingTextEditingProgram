@@ -147,8 +147,31 @@ func displayLineNumber(row int, textBufferRow int) {
 	printMessage(lineNumberOffset, row, lineNumberColor, bgColor, lineNumberStr)
 }
 
-func insertRune(insertrune rune) {
+func insertEnter() {
 
+}
+
+func insertRune(insertrune rune) {
+	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
+	CursorPosYinBuffer := CURSORY + offsetY
+
+	if CursorPosYinBuffer < 0 ||
+		CursorPosYinBuffer >= len(textBuffer) ||
+		CursorPosXinBuffer < 0 ||
+		CursorPosXinBuffer > len(textBuffer[CursorPosYinBuffer]) {
+		printMessage(0, 0, termbox.ColorDefault, termbox.ColorRed, "INSERT WAS NOT INBOUND")
+		termbox.PollEvent()
+		return
+	}
+
+	beforeSlice := textBuffer[CursorPosYinBuffer][0:CursorPosXinBuffer]
+	postSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
+
+	newSlice := append(beforeSlice, insertrune)
+	newSlice = append(newSlice, postSlice...)
+	textBuffer[CursorPosYinBuffer] = newSlice
+
+	CURSORX++
 }
 
 func deleteAtCursor() {

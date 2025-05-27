@@ -13,7 +13,8 @@ var (
 	CURSORX int
 	CURSORY int
 )
-var offsetX, offsetY int
+var offsetY = 0
+var offsetX = 0
 var sourceFile string
 var textBuffer = [][]rune{
 	{'H', 'e', 'l', 'l', 'o'},
@@ -89,12 +90,12 @@ func writeLoop() {
 				if CURSORX != lineCountWidth {
 					CURSORX--
 				}
-
 			case termbox.KeyArrowRight:
 				CURSORX++
-
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				deleteAtCursor()
+			case termbox.KeyEnter:
+				insertEnter()
 			default:
 				insertRune(event.Ch)
 			}
@@ -102,5 +103,6 @@ func writeLoop() {
 
 		termbox.SetCursor(CURSORX, CURSORY)
 		displayBuffer()
+		termbox.Flush()
 	}
 }
