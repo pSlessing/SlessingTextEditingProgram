@@ -83,15 +83,25 @@ func writeLoop() {
 		if event.Type == termbox.EventKey {
 			switch event.Key {
 			case termbox.KeyArrowUp:
-				CURSORY--
+				if CURSORY != 0 {
+					CURSORY--
+				}
 			case termbox.KeyArrowDown:
-				CURSORY++
+				if len(textBuffer) > CURSORY+offsetY+1 {
+					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY+1]) {
+						CURSORY = len(textBuffer[CURSORY+offsetY+1])
+					} else {
+						CURSORY++
+					}
+				}
 			case termbox.KeyArrowLeft:
 				if CURSORX != lineCountWidth {
 					CURSORX--
 				}
 			case termbox.KeyArrowRight:
-				CURSORX++
+				if CURSORX-lineCountWidth < len(textBuffer[CURSORY+offsetY]) {
+					CURSORX++
+				}
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				deleteAtCursor()
 			case termbox.KeyEnter:
