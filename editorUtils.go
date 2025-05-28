@@ -148,13 +148,40 @@ func displayLineNumber(row int, textBufferRow int) {
 }
 
 func insertEnter() {
-	var emptyList = []rune{}
-	beforeSlice := textBuffer[0:CURSORY]
-	beforeSlice = append(beforeSlice, emptyList)
-	afterSlice := textBuffer[CURSORY+1:]
-	finalSlice := append(beforeSlice, afterSlice...)
-	//This shit is unholy, horrible, and not good. But hey, it works
-	textBuffer = finalSlice
+	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
+	CursorPosYinBuffer := CURSORY + offsetY
+
+	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
+		return
+	}
+
+	if CursorPosXinBuffer < 0 {
+		CursorPosXinBuffer = 0
+	}
+	if CursorPosXinBuffer > len(textBuffer[CursorPosYinBuffer]) {
+		CursorPosXinBuffer = len(textBuffer[CursorPosYinBuffer])
+	}
+
+	currentLine := textBuffer[CursorPosYinBuffer]
+	beforeCursor := make([]rune, CursorPosXinBuffer)
+	copy(beforeCursor, currentLine[:CursorPosXinBuffer])
+
+	afterCursor := make([]rune, len(currentLine)-CursorPosXinBuffer)
+	copy(afterCursor, currentLine[CursorPosXinBuffer:])
+
+	newTextBuffer := make([][]rune, len(textBuffer)+1)
+
+	copy(newTextBuffer[:CursorPosYinBuffer], textBuffer[:CursorPosYinBuffer])
+
+	newTextBuffer[CursorPosYinBuffer] = beforeCursor
+	newTextBuffer[CursorPosYinBuffer+1] = afterCursor
+
+	copy(newTextBuffer[CursorPosYinBuffer+2:], textBuffer[CursorPosYinBuffer+1:])
+
+	textBuffer = newTextBuffer
+
+	CURSORX = lineCountWidth
+	CURSORY++
 }
 
 func insertRune(insertrune rune) {
@@ -181,12 +208,37 @@ func insertRune(insertrune rune) {
 }
 
 func deleteAtCursor() {
-	if len(textBuffer[CURSORY]) == 0 {
-		beforeSlice := textBuffer[0:CURSORY]
-		afterSlice := textBuffer[CURSORY+1:]
-		finalSlice := append(beforeSlice, afterSlice...)
-		//This shit is unholy, horrible, and not good. But hey, it works
-		textBuffer = finalSlice
+	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
+	CursorPosYinBuffer := CURSORY + offsetY
 
+	//Dont access memory we dont have access to
+	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
+		return
+	}
+
+	//If cursor is at the beginning of a line
+	if CursorPosXinBuffer <= 0 {
+		if CursorPosYinBuffer > 0 {
+			prevLineLength := len(textBuffer[CursorPosYinBuffer-1])
+
+			textBuffer[CursorPosYinBuffer-1] = append(textBuffer[CursorPosYinBuffer-1], textBuffer[CursorPosYinBuffer]...)
+
+			newTextBuffer := make([][]rune, len(textBuffer)-1)
+			copy(newTextBuffer[:CursorPosYinBuffer], textBuffer[:CursorPosYinBuffer])
+			copy(newTextBuffer[CursorPosYinBuffer:], textBuffer[CursorPosYinBuffer+1:])
+			textBuffer = newTextBuffer
+
+			CURSORY--
+			CURSORX = prevLineLength + lineCountWidth
+		}
+	} else {
+		//Normal case
+		if CursorPosXinBuffer <= len(textBuffer[CursorPosYinBuffer]) {
+			beforeSlice := textBuffer[CursorPosYinBuffer][:CursorPosXinBuffer-1]
+			afterSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
+			textBuffer[CursorPosYinBuffer] = append(beforeSlice, afterSlice...)
+
+			CURSORX--
+		}
 	}
 }

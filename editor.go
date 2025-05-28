@@ -121,6 +121,7 @@ func writeLoop() {
 		}
 
 		termbox.SetCursor(CURSORX, CURSORY)
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 		displayBuffer()
 		termbox.Flush()
 	}
