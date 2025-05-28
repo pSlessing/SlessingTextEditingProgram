@@ -84,12 +84,21 @@ func writeLoop() {
 			switch event.Key {
 			case termbox.KeyArrowUp:
 				if CURSORY != 0 {
-					CURSORY--
+					//If the length of the current line is more than the next
+					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY-1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY-1]) {
+						CURSORX = len(textBuffer[CURSORY+offsetY-1]) + lineCountWidth
+						CURSORY--
+					} else {
+						CURSORY--
+					}
 				}
 			case termbox.KeyArrowDown:
+				//Is there a line below?
 				if len(textBuffer) > CURSORY+offsetY+1 {
-					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY+1]) {
-						CURSORY = len(textBuffer[CURSORY+offsetY+1])
+					//If the length of the current line is more than the next
+					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY+1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY+1]) {
+						CURSORX = len(textBuffer[CURSORY+offsetY+1]) + lineCountWidth
+						CURSORY++
 					} else {
 						CURSORY++
 					}

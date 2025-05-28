@@ -90,7 +90,7 @@ func printMessage(col, row int, fg, bg termbox.Attribute, msg string) {
 func displayBuffer() {
 	var row, col int
 
-	for row = 0; row < ROWS; row++ {
+	for row = 0; row < ROWS+1; row++ {
 		textBufferRow := row + offsetY
 
 		displayLineNumber(row, textBufferRow)
@@ -148,7 +148,13 @@ func displayLineNumber(row int, textBufferRow int) {
 }
 
 func insertEnter() {
-
+	var emptyList = []rune{}
+	beforeSlice := textBuffer[0:CURSORY]
+	beforeSlice = append(beforeSlice, emptyList)
+	afterSlice := textBuffer[CURSORY+1:]
+	finalSlice := append(beforeSlice, afterSlice...)
+	//This shit is unholy, horrible, and not good. But hey, it works
+	textBuffer = finalSlice
 }
 
 func insertRune(insertrune rune) {
@@ -175,5 +181,12 @@ func insertRune(insertrune rune) {
 }
 
 func deleteAtCursor() {
+	if len(textBuffer[CURSORY]) == 0 {
+		beforeSlice := textBuffer[0:CURSORY]
+		afterSlice := textBuffer[CURSORY+1:]
+		finalSlice := append(beforeSlice, afterSlice...)
+		//This shit is unholy, horrible, and not good. But hey, it works
+		textBuffer = finalSlice
 
+	}
 }
