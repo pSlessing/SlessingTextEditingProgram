@@ -15,6 +15,7 @@ func inputHandling() {
 	if event.Type == termbox.EventKey {
 		if event.Key == termbox.KeyEnter {
 			handleCommand()
+			inputBuffer = []rune{}
 		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
 			if len(inputBuffer) > 0 {
 				inputBuffer = inputBuffer[:len(inputBuffer)-1]
@@ -39,6 +40,8 @@ func handleCommand() {
 		os.Exit(0)
 	case "write":
 		writeLoop()
+	case "open":
+		openLoop()
 	}
 }
 
@@ -52,6 +55,7 @@ func writeState() {
 
 // Opens a specific file and reads it into the text buffer
 func openFile(filename string) {
+	textBuffer = [][]rune{}
 	file, err := os.Open(filename)
 	if err != nil {
 		sourceFile = filename
@@ -84,9 +88,6 @@ func printMessage(col, row int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
-// Stupid way to do this, everything in one function, no options for modularity
-// One could maybe include a list of lists of functions, each index being ran at a specific point, maybe.
-// Would potentially cause trouble at certain points (for example, how does one just insert a row option wihout needing new variables in the base function)
 func displayBuffer() {
 	var row, col int
 
@@ -241,4 +242,34 @@ func deleteAtCursor() {
 			CURSORX--
 		}
 	}
+}
+
+func openLoop() {
+	var openBuffer []rune
+
+	for {
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		displayBuffer()
+		displayStatus()
+		printMessage((COLS/2)-lineCountWidth, (ROWS / 2), termbox.ColorBlack, termbox.ColorWhite, "Open File:")
+		printMessage((COLS/2)-lineCountWidth, (ROWS/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(openBuffer))
+		termbox.Flush()
+
+		event := termbox.PollEvent()
+
+		if event.Key == termbox.KeyEnter {
+			openFile(string(openBuffer))
+			break
+		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
+			if len(openBuffer) > 0 {
+				openBuffer = openBuffer[:len(openBuffer)-1]
+			}
+		} else {
+			openBuffer = append(openBuffer, event.Ch)
+		}
+	}
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	displayBuffer()
+	displayStatus()
+	termbox.Flush()
 }

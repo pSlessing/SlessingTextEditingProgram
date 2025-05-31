@@ -2,7 +2,6 @@ This is a project im using, both to learn GO, but also to implement a larger typ
 
 ### Current Features
 
-- Line numbers
-- Status bar
-- Command bar
-- Open file with arg (Soon)
+- Main Loop using commands on the status bar
+- Write loop using the command write
+- Open command used to open a command
