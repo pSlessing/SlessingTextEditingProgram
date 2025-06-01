@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"ste-text-editor/systemtools"
 )
-
+import "./systemtools"
 import "github.com/nsf/termbox-go"
 
 var (
@@ -13,17 +14,17 @@ var (
 	CURSORX int
 	CURSORY int
 )
-var offsetY = 0
-var offsetX = 0
-var sourceFile string
-var textBuffer = [][]rune{
+var OFFSETY = 0
+var OFFSETX = 0
+var SOURCEFILE string
+var TEXTBUFFER = [][]rune{
 	{'H', 'e', 'l', 'l', 'o'},
 	{'w', 'o', 'r', 'l', 'd'},
 }
 
-var inputBuffer []rune
+var INPUTBUFFER []rune
 
-var lineCountWidth = 3
+var LINECOUNTWIDTH = 3
 
 func runEditor() {
 	bootErr := termbox.Init()
@@ -43,7 +44,7 @@ func runEditor() {
 
 func titleLoop() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	printMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
+	systemtools.printMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
 	termbox.Flush()
 
 	for {
@@ -66,63 +67,34 @@ func mainEditorLoop() {
 			COLS = 78
 		}
 
-		displayBuffer()
-		displayStatus()
+		systemtools.displayBuffer()
+		systemtools.displayStatus()
 		termbox.Flush()
 		inputHandling()
 		termbox.Flush()
 	}
 }
 
-func writeLoop() {
-	CURSORX = lineCountWidth
-	CURSORY = 0
-	termbox.SetCursor(CURSORX, CURSORY)
-	for {
-		event := termbox.PollEvent()
-		if event.Type == termbox.EventKey {
-			switch event.Key {
-			case termbox.KeyArrowUp:
-				if CURSORY != 0 {
-					//If the length of the current line is more than the next
-					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY-1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY-1]) {
-						CURSORX = len(textBuffer[CURSORY+offsetY-1]) + lineCountWidth
-						CURSORY--
-					} else {
-						CURSORY--
-					}
-				}
-			case termbox.KeyArrowDown:
-				//Is there a line below?
-				if len(textBuffer) > CURSORY+offsetY+1 {
-					//If the length of the current line is more than the next
-					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY+1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY+1]) {
-						CURSORX = len(textBuffer[CURSORY+offsetY+1]) + lineCountWidth
-						CURSORY++
-					} else {
-						CURSORY++
-					}
-				}
-			case termbox.KeyArrowLeft:
-				if CURSORX != lineCountWidth {
-					CURSORX--
-				}
-			case termbox.KeyArrowRight:
-				if CURSORX-lineCountWidth < len(textBuffer[CURSORY+offsetY]) {
-					CURSORX++
-				}
-			case termbox.KeyBackspace, termbox.KeyBackspace2:
-				deleteAtCursor()
-			case termbox.KeyEnter:
-				insertEnter()
-			default:
-				insertRune(event.Ch)
+func inputHandling() {
+	event := termbox.PollEvent()
+
+	if event.Type == termbox.EventKey {
+		if event.Key == termbox.KeyEnter {
+			handleCommand()
+			INPUTBUFFER = []rune{}
+		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
+			if len(INPUTBUFFER) > 0 {
+				INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
 			}
+		} else {
+			INPUTBUFFER = append(INPUTBUFFER, event.Ch)
+
 		}
 
-		termbox.SetCursor(CURSORX, CURSORY)
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		displayBuffer()
-		termbox.Flush()
 	}
+
+	if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
+		return
+	}
+
 }

@@ -1,40 +1,59 @@
 package main
 
 import (
-	"bufio"
-	"github.com/mattn/go-runewidth"
+	"fmt"
 	"github.com/nsf/termbox-go"
 	"os"
-	"strconv"
+	"ste-text-editor/systemtools"
 	"strings"
 )
 
-func inputHandling() {
-	event := termbox.PollEvent()
+// saveAsLoop prompts the user for a filename and saves the file
+func saveAsLoop() {
+	var saveBuffer []rune
 
-	if event.Type == termbox.EventKey {
+	for {
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		systemtools.displayBuffer()
+		systemtools.displayStatus()
+		systemtools.printMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), termbox.ColorBlack, termbox.ColorWhite, "Save As:")
+		systemtools.printMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(saveBuffer))
+		termbox.Flush()
+
+		event := termbox.PollEvent()
+
 		if event.Key == termbox.KeyEnter {
-			handleCommand()
-			inputBuffer = []rune{}
-		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
-			if len(inputBuffer) > 0 {
-				inputBuffer = inputBuffer[:len(inputBuffer)-1]
+			filename := string(saveBuffer)
+			if filename != "" {
+				SOURCEFILE = filename // Set the current file
+				err := writeBufferToFile(filename)
+				if err != nil {
+					systemtools.printMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault,
+						fmt.Sprintf("Error saving file: %s", err.Error()))
+					termbox.Flush()
+					termbox.PollEvent()
+				}
 			}
+			break
+		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
+			if len(saveBuffer) > 0 {
+				saveBuffer = saveBuffer[:len(saveBuffer)-1]
+			}
+		} else if event.Key == termbox.KeyEsc {
+			break // Cancel save operation
 		} else {
-			inputBuffer = append(inputBuffer, event.Ch)
-
+			saveBuffer = append(saveBuffer, event.Ch)
 		}
-
 	}
 
-	if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
-		return
-	}
-
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	systemtools.displayBuffer()
+	systemtools.displayStatus()
+	termbox.Flush()
 }
 
 func handleCommand() {
-	switch strings.ToLower(string(inputBuffer)) {
+	switch strings.ToLower(string(INPUTBUFFER)) {
 	case "quit":
 		termbox.Close()
 		os.Exit(0)
@@ -43,233 +62,4 @@ func handleCommand() {
 	case "open":
 		openLoop()
 	}
-}
-
-func saveCurrentState() {
-
-}
-
-func writeState() {
-
-}
-
-// Opens a specific file and reads it into the text buffer
-func openFile(filename string) {
-	textBuffer = [][]rune{}
-	file, err := os.Open(filename)
-	if err != nil {
-		sourceFile = filename
-		textBuffer = append(textBuffer, []rune{})
-		return
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	lineNumber := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		textBuffer = append(textBuffer, []rune{})
-		count := 0
-		for _, ch := range line {
-			textBuffer[lineNumber] = append(textBuffer[lineNumber], rune(ch))
-			count += runewidth.RuneWidth(ch)
-		}
-		lineNumber++
-	}
-	if lineNumber == 0 {
-		textBuffer = append(textBuffer, []rune{})
-	}
-}
-
-// Print a string starting at a specific row and column on the screen
-func printMessage(col, row int, fg, bg termbox.Attribute, msg string) {
-	for _, c := range msg {
-		termbox.SetCell(col, row, c, fg, bg)
-		col += runewidth.RuneWidth(c)
-	}
-}
-
-func displayBuffer() {
-	var row, col int
-
-	for row = 0; row < ROWS+1; row++ {
-		textBufferRow := row + offsetY
-
-		displayLineNumber(row, textBufferRow)
-
-		for col = 0; col < COLS; col++ {
-			textBufferCol := col + offsetX
-
-			if textBufferRow >= 0 &&
-				textBufferRow < len(textBuffer) &&
-				textBufferCol < len(textBuffer[textBufferRow]) {
-
-				termbox.SetCell(col+lineCountWidth, row,
-					textBuffer[textBufferRow][textBufferCol],
-					termbox.ColorDefault, termbox.ColorDefault)
-
-			}
-		}
-	}
-}
-
-func displayStatus() {
-	var col int
-
-	for col = 0; col < COLS; col++ {
-		termbox.SetCell(col, ROWS+1, ' ', termbox.ColorBlack, termbox.ColorWhite)
-		if col < len(inputBuffer) {
-			termbox.SetCell(col, ROWS+1,
-				inputBuffer[col],
-				termbox.ColorBlack, termbox.ColorWhite)
-		}
-	}
-}
-
-func displayLineNumber(row int, textBufferRow int) {
-
-	// Display line numbers for all visible rows
-	lineNumberStr := "~"
-	lineNumberColor := termbox.ColorCyan
-	bgColor := termbox.ColorWhite
-
-	if textBufferRow < len(textBuffer) {
-		lineNumberStr = strconv.Itoa(textBufferRow + 1)
-		lineNumberColor = termbox.ColorCyan
-		bgColor = termbox.ColorWhite
-	}
-
-	lineNumberOffset := lineCountWidth - len(lineNumberStr)
-	if lineNumberOffset > 0 {
-		for i := 0; i < lineNumberOffset; i++ {
-			termbox.SetCell(i, row, ' ', lineNumberColor, bgColor)
-		}
-	}
-
-	printMessage(lineNumberOffset, row, lineNumberColor, bgColor, lineNumberStr)
-}
-
-func insertEnter() {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
-
-	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
-		return
-	}
-
-	if CursorPosXinBuffer < 0 {
-		CursorPosXinBuffer = 0
-	}
-	if CursorPosXinBuffer > len(textBuffer[CursorPosYinBuffer]) {
-		CursorPosXinBuffer = len(textBuffer[CursorPosYinBuffer])
-	}
-
-	currentLine := textBuffer[CursorPosYinBuffer]
-	beforeCursor := make([]rune, CursorPosXinBuffer)
-	copy(beforeCursor, currentLine[:CursorPosXinBuffer])
-
-	afterCursor := make([]rune, len(currentLine)-CursorPosXinBuffer)
-	copy(afterCursor, currentLine[CursorPosXinBuffer:])
-
-	newTextBuffer := make([][]rune, len(textBuffer)+1)
-
-	copy(newTextBuffer[:CursorPosYinBuffer], textBuffer[:CursorPosYinBuffer])
-
-	newTextBuffer[CursorPosYinBuffer] = beforeCursor
-	newTextBuffer[CursorPosYinBuffer+1] = afterCursor
-
-	copy(newTextBuffer[CursorPosYinBuffer+2:], textBuffer[CursorPosYinBuffer+1:])
-
-	textBuffer = newTextBuffer
-
-	CURSORX = lineCountWidth
-	CURSORY++
-}
-
-func insertRune(insertrune rune) {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
-
-	if CursorPosYinBuffer < 0 ||
-		CursorPosYinBuffer >= len(textBuffer) ||
-		CursorPosXinBuffer < 0 ||
-		CursorPosXinBuffer > len(textBuffer[CursorPosYinBuffer]) {
-		printMessage(0, 0, termbox.ColorDefault, termbox.ColorRed, "INSERT WAS NOT INBOUND")
-		termbox.PollEvent()
-		return
-	}
-
-	beforeSlice := textBuffer[CursorPosYinBuffer][0:CursorPosXinBuffer]
-	postSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
-
-	newSlice := append(beforeSlice, insertrune)
-	newSlice = append(newSlice, postSlice...)
-	textBuffer[CursorPosYinBuffer] = newSlice
-
-	CURSORX++
-}
-
-func deleteAtCursor() {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
-
-	//Dont access memory we dont have access to
-	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
-		return
-	}
-
-	//If cursor is at the beginning of a line
-	if CursorPosXinBuffer <= 0 {
-		if CursorPosYinBuffer > 0 {
-			prevLineLength := len(textBuffer[CursorPosYinBuffer-1])
-
-			textBuffer[CursorPosYinBuffer-1] = append(textBuffer[CursorPosYinBuffer-1], textBuffer[CursorPosYinBuffer]...)
-
-			newTextBuffer := make([][]rune, len(textBuffer)-1)
-			copy(newTextBuffer[:CursorPosYinBuffer], textBuffer[:CursorPosYinBuffer])
-			copy(newTextBuffer[CursorPosYinBuffer:], textBuffer[CursorPosYinBuffer+1:])
-			textBuffer = newTextBuffer
-
-			CURSORY--
-			CURSORX = prevLineLength + lineCountWidth
-		}
-	} else {
-		//Normal case
-		if CursorPosXinBuffer <= len(textBuffer[CursorPosYinBuffer]) {
-			beforeSlice := textBuffer[CursorPosYinBuffer][:CursorPosXinBuffer-1]
-			afterSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
-			textBuffer[CursorPosYinBuffer] = append(beforeSlice, afterSlice...)
-
-			CURSORX--
-		}
-	}
-}
-
-func openLoop() {
-	var openBuffer []rune
-
-	for {
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		displayBuffer()
-		displayStatus()
-		printMessage((COLS/2)-lineCountWidth, (ROWS / 2), termbox.ColorBlack, termbox.ColorWhite, "Open File:")
-		printMessage((COLS/2)-lineCountWidth, (ROWS/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(openBuffer))
-		termbox.Flush()
-
-		event := termbox.PollEvent()
-
-		if event.Key == termbox.KeyEnter {
-			openFile(string(openBuffer))
-			break
-		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
-			if len(openBuffer) > 0 {
-				openBuffer = openBuffer[:len(openBuffer)-1]
-			}
-		} else {
-			openBuffer = append(openBuffer, event.Ch)
-		}
-	}
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	displayBuffer()
-	displayStatus()
-	termbox.Flush()
 }
