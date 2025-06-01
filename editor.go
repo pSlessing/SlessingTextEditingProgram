@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/nsf/termbox-go"
 	"os"
+	"ste-text-editor/loops"
 	"ste-text-editor/systemtools"
+	"strings"
 )
-import "./systemtools"
-import "github.com/nsf/termbox-go"
 
 var (
 	COLS    int
@@ -23,7 +24,6 @@ var TEXTBUFFER = [][]rune{
 }
 
 var INPUTBUFFER []rune
-
 var LINECOUNTWIDTH = 3
 
 func runEditor() {
@@ -36,15 +36,13 @@ func runEditor() {
 	}
 
 	titleLoop()
-
 	mainEditorLoop()
-
 	termbox.Close()
 }
 
 func titleLoop() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	systemtools.printMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
+	systemtools.PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
 	termbox.Flush()
 
 	for {
@@ -61,14 +59,14 @@ func titleLoop() {
 func mainEditorLoop() {
 	for {
 		COLS, ROWS = termbox.Size()
-		ROWS -= 2 // Set current terminal size
+		ROWS -= 2
 		COLS -= 3
 		if COLS < 78 {
 			COLS = 78
 		}
 
-		systemtools.displayBuffer()
-		systemtools.displayStatus()
+		systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
+		systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS)
 		termbox.Flush()
 		inputHandling()
 		termbox.Flush()
@@ -88,13 +86,41 @@ func inputHandling() {
 			}
 		} else {
 			INPUTBUFFER = append(INPUTBUFFER, event.Ch)
-
 		}
-
 	}
 
 	if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
 		return
 	}
+}
 
+func handleCommand() {
+	switch strings.ToLower(string(INPUTBUFFER)) {
+	case "quit":
+		termbox.Close()
+		os.Exit(0)
+	case "write":
+		// Pass all needed variables to the write loop
+		CURSORX, CURSORY, TEXTBUFFER = loops.WriteLoop(TEXTBUFFER, CURSORX, CURSORY, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
+	case "open":
+		TEXTBUFFER, SOURCEFILE = loops.OpenLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+	case "save":
+		saveCurrentState()
+	case "saveas":
+		SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+	}
+}
+
+// Updated saveCurrentState function using systemtools
+func saveCurrentState() {
+	newSourceFile, err := systemtools.SaveCurrentState(TEXTBUFFER, SOURCEFILE, ROWS)
+	if err != nil {
+		if SOURCEFILE == "" {
+			// No filename set, call save-as loop
+			SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+		}
+		// Error was already displayed in SaveCurrentState function
+	} else {
+		SOURCEFILE = newSourceFile
+	}
 }

@@ -1,13 +1,69 @@
 package loops
 
-import "github.com/nsf/termbox-go"
+import (
+	"github.com/nsf/termbox-go"
+	"ste-text-editor/systemtools"
+)
 
-func insertEnter() {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
+func WriteLoop(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, rows, cols, lineCountWidth int) (int, int, [][]rune) {
+	cursorX = lineCountWidth
+	cursorY = 0
+	termbox.SetCursor(cursorX, cursorY)
+
+	for {
+		event := termbox.PollEvent()
+		if event.Type == termbox.EventKey {
+			switch event.Key {
+			case termbox.KeyArrowUp:
+				if cursorY != 0 {
+					if len(textBuffer[cursorY+offsetY]) > len(textBuffer[cursorY+offsetY-1]) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY-1]) {
+						cursorX = len(textBuffer[cursorY+offsetY-1]) + lineCountWidth
+						cursorY--
+					} else {
+						cursorY--
+					}
+				}
+			case termbox.KeyArrowDown:
+				if len(textBuffer) > cursorY+offsetY+1 {
+					if len(textBuffer[cursorY+offsetY]) > len(textBuffer[cursorY+offsetY+1]) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY+1]) {
+						cursorX = len(textBuffer[cursorY+offsetY+1]) + lineCountWidth
+						cursorY++
+					} else {
+						cursorY++
+					}
+				}
+			case termbox.KeyArrowLeft:
+				if cursorX != lineCountWidth {
+					cursorX--
+				}
+			case termbox.KeyArrowRight:
+				if cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
+					cursorX++
+				}
+			case termbox.KeyBackspace, termbox.KeyBackspace2:
+				textBuffer, cursorX, cursorY = deleteAtCursor(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
+			case termbox.KeyEnter:
+				textBuffer, cursorX, cursorY = insertEnter(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
+			case termbox.KeyEsc:
+				return cursorX, cursorY, textBuffer
+			default:
+				textBuffer, cursorX = insertRune(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth, event.Ch)
+			}
+		}
+
+		termbox.SetCursor(cursorX, cursorY)
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		systemtools.DisplayBuffer(textBuffer, offsetX, offsetY, rows, cols, lineCountWidth)
+		termbox.Flush()
+	}
+}
+
+func insertEnter(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, lineCountWidth int) ([][]rune, int, int) {
+	CursorPosXinBuffer := cursorX - lineCountWidth + offsetX
+	CursorPosYinBuffer := cursorY + offsetY
 
 	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
-		return
+		return textBuffer, cursorX, cursorY
 	}
 
 	if CursorPosXinBuffer < 0 {
@@ -33,23 +89,20 @@ func insertEnter() {
 
 	copy(newTextBuffer[CursorPosYinBuffer+2:], textBuffer[CursorPosYinBuffer+1:])
 
-	textBuffer = newTextBuffer
-
-	CURSORX = lineCountWidth
-	CURSORY++
+	return newTextBuffer, lineCountWidth, cursorY + 1
 }
 
-func insertRune(insertrune rune) {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
+func insertRune(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, lineCountWidth int, insertrune rune) ([][]rune, int) {
+	CursorPosXinBuffer := cursorX - lineCountWidth + offsetX
+	CursorPosYinBuffer := cursorY + offsetY
 
 	if CursorPosYinBuffer < 0 ||
 		CursorPosYinBuffer >= len(textBuffer) ||
 		CursorPosXinBuffer < 0 ||
 		CursorPosXinBuffer > len(textBuffer[CursorPosYinBuffer]) {
-		printMessage(0, 0, termbox.ColorDefault, termbox.ColorRed, "INSERT WAS NOT INBOUND")
+		systemtools.PrintMessage(0, 0, termbox.ColorDefault, termbox.ColorRed, "INSERT WAS NOT INBOUND")
 		termbox.PollEvent()
-		return
+		return textBuffer, cursorX
 	}
 
 	beforeSlice := textBuffer[CursorPosYinBuffer][0:CursorPosXinBuffer]
@@ -59,19 +112,17 @@ func insertRune(insertrune rune) {
 	newSlice = append(newSlice, postSlice...)
 	textBuffer[CursorPosYinBuffer] = newSlice
 
-	CURSORX++
+	return textBuffer, cursorX + 1
 }
 
-func deleteAtCursor() {
-	CursorPosXinBuffer := CURSORX - lineCountWidth + offsetX
-	CursorPosYinBuffer := CURSORY + offsetY
+func deleteAtCursor(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, lineCountWidth int) ([][]rune, int, int) {
+	CursorPosXinBuffer := cursorX - lineCountWidth + offsetX
+	CursorPosYinBuffer := cursorY + offsetY
 
-	//Dont access memory we dont have access to
 	if CursorPosYinBuffer < 0 || CursorPosYinBuffer >= len(textBuffer) {
-		return
+		return textBuffer, cursorX, cursorY
 	}
 
-	//If cursor is at the beginning of a line
 	if CursorPosXinBuffer <= 0 {
 		if CursorPosYinBuffer > 0 {
 			prevLineLength := len(textBuffer[CursorPosYinBuffer-1])
@@ -81,72 +132,18 @@ func deleteAtCursor() {
 			newTextBuffer := make([][]rune, len(textBuffer)-1)
 			copy(newTextBuffer[:CursorPosYinBuffer], textBuffer[:CursorPosYinBuffer])
 			copy(newTextBuffer[CursorPosYinBuffer:], textBuffer[CursorPosYinBuffer+1:])
-			textBuffer = newTextBuffer
 
-			CURSORY--
-			CURSORX = prevLineLength + lineCountWidth
+			return newTextBuffer, prevLineLength + lineCountWidth, cursorY - 1
 		}
 	} else {
-		//Normal case
 		if CursorPosXinBuffer <= len(textBuffer[CursorPosYinBuffer]) {
 			beforeSlice := textBuffer[CursorPosYinBuffer][:CursorPosXinBuffer-1]
 			afterSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
 			textBuffer[CursorPosYinBuffer] = append(beforeSlice, afterSlice...)
 
-			CURSORX--
+			return textBuffer, cursorX - 1, cursorY
 		}
 	}
-}
 
-func writeLoop() {
-	CURSORX = lineCountWidth
-	CURSORY = 0
-	termbox.SetCursor(CURSORX, CURSORY)
-	for {
-		event := termbox.PollEvent()
-		if event.Type == termbox.EventKey {
-			switch event.Key {
-			case termbox.KeyArrowUp:
-				if CURSORY != 0 {
-					//If the length of the current line is more than the next
-					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY-1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY-1]) {
-						CURSORX = len(textBuffer[CURSORY+offsetY-1]) + lineCountWidth
-						CURSORY--
-					} else {
-						CURSORY--
-					}
-				}
-			case termbox.KeyArrowDown:
-				//Is there a line below?
-				if len(textBuffer) > CURSORY+offsetY+1 {
-					//If the length of the current line is more than the next
-					if len(textBuffer[CURSORY+offsetY]) > len(textBuffer[CURSORY+offsetY+1]) && CURSORX-lineCountWidth > len(textBuffer[CURSORY+offsetY+1]) {
-						CURSORX = len(textBuffer[CURSORY+offsetY+1]) + lineCountWidth
-						CURSORY++
-					} else {
-						CURSORY++
-					}
-				}
-			case termbox.KeyArrowLeft:
-				if CURSORX != lineCountWidth {
-					CURSORX--
-				}
-			case termbox.KeyArrowRight:
-				if CURSORX-lineCountWidth < len(textBuffer[CURSORY+offsetY]) {
-					CURSORX++
-				}
-			case termbox.KeyBackspace, termbox.KeyBackspace2:
-				deleteAtCursor()
-			case termbox.KeyEnter:
-				insertEnter()
-			default:
-				insertRune(event.Ch)
-			}
-		}
-
-		termbox.SetCursor(CURSORX, CURSORY)
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		displayBuffer()
-		termbox.Flush()
-	}
+	return textBuffer, cursorX, cursorY
 }
