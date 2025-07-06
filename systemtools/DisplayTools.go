@@ -18,7 +18,7 @@ func PrintMessage(col, row int, fg, bg termbox.Attribute, msg string) {
 func DisplayBuffer(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidth int) {
 	var row, col int
 
-	for row = 0; row < rows+1; row++ {
+	for row = 0; row <= rows; row++ {
 		textBufferRow := row + offsetY
 
 		DisplayLineNumber(row, textBufferRow, lineCountWidth, textBuffer)
