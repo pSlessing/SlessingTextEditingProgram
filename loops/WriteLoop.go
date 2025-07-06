@@ -9,46 +9,85 @@ func WriteLoop(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, rows, co
 	cursorX = lineCountWidth
 	cursorY = 0
 	termbox.SetCursor(cursorX, cursorY)
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	systemtools.DisplayBuffer(textBuffer, offsetX, offsetY, rows, cols, lineCountWidth)
+	termbox.Flush()
 
 	for {
 		event := termbox.PollEvent()
 		if event.Type == termbox.EventKey {
 			switch event.Key {
 			case termbox.KeyArrowUp:
-				if cursorY != 0 {
-					if len(textBuffer[cursorY+offsetY]) > len(textBuffer[cursorY+offsetY-1]) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY-1]) {
-						cursorX = len(textBuffer[cursorY+offsetY-1]) + lineCountWidth
-						cursorY--
-					} else {
-						cursorY--
-					}
+				if cursorY > 0 {
+					// Move cursor up within visible area
+					cursorY--
+				} else if offsetY > 0 {
+					// Scroll up when cursor is at top
+					offsetY--
+				}
+				// Adjust cursor X if moving to a shorter line
+				if cursorY+offsetY < len(textBuffer) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY]) {
+					cursorX = len(textBuffer[cursorY+offsetY]) + lineCountWidth
 				}
 			case termbox.KeyArrowDown:
-				if len(textBuffer) > cursorY+offsetY+1 {
-					if len(textBuffer[cursorY+offsetY]) > len(textBuffer[cursorY+offsetY+1]) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY+1]) {
-						cursorX = len(textBuffer[cursorY+offsetY+1]) + lineCountWidth
-						cursorY++
-					} else {
-						cursorY++
-					}
+				if cursorY < rows-1 && cursorY+offsetY+1 < len(textBuffer) {
+					// Move cursor down within visible area
+					cursorY++
+				} else if offsetY+rows < len(textBuffer) {
+					// Scroll down when cursor is at bottom
+					offsetY++
+				}
+				// Adjust cursor X if moving to a shorter line
+				if cursorY+offsetY < len(textBuffer) && cursorX-lineCountWidth > len(textBuffer[cursorY+offsetY]) {
+					cursorX = len(textBuffer[cursorY+offsetY]) + lineCountWidth
 				}
 			case termbox.KeyArrowLeft:
-				if cursorX != lineCountWidth {
+				if cursorX > lineCountWidth {
 					cursorX--
+				} else if offsetX > 0 {
+					offsetX--
 				}
 			case termbox.KeyArrowRight:
-				if cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
-					cursorX++
+				if cursorY+offsetY < len(textBuffer) {
+					if cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
+						cursorX++
+					} else if offsetX+cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
+						offsetX++
+					}
 				}
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				textBuffer, cursorX, cursorY = deleteAtCursor(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
+				// Auto-scroll if cursor goes above visible area
+				if cursorY < 0 {
+					offsetY += cursorY
+					cursorY = 0
+				}
 			case termbox.KeyEnter:
 				textBuffer, cursorX, cursorY = insertEnter(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
+				// Auto-scroll if cursor goes below visible area
+				if cursorY >= rows {
+					offsetY += cursorY - rows + 1
+					cursorY = rows - 1
+				}
 			case termbox.KeyEsc:
 				return cursorX, cursorY, textBuffer
 			default:
 				textBuffer, cursorX = insertRune(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth, event.Ch)
 			}
+		}
+
+		// Ensure cursor stays within bounds
+		if cursorY < 0 {
+			cursorY = 0
+		}
+		if cursorY >= rows {
+			cursorY = rows - 1
+		}
+		if cursorX < lineCountWidth {
+			cursorX = lineCountWidth
+		}
+		if cursorX >= cols+lineCountWidth {
+			cursorX = cols + lineCountWidth - 1
 		}
 
 		termbox.SetCursor(cursorX, cursorY)

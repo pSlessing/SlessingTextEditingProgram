@@ -42,6 +42,5 @@ func SaveAsLoop(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidt
 			saveBuffer = append(saveBuffer, event.Ch)
 		}
 	}
-
 	return sourceFile
 }

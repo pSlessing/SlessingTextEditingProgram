@@ -19,8 +19,7 @@ var OFFSETY = 0
 var OFFSETX = 0
 var SOURCEFILE string
 var TEXTBUFFER = [][]rune{
-	{'H', 'e', 'l', 'l', 'o'},
-	{'w', 'o', 'r', 'l', 'd'},
+	{},
 }
 
 var INPUTBUFFER []rune
@@ -65,6 +64,7 @@ func mainEditorLoop() {
 			COLS = 78
 		}
 
+		termbox.Flush()
 		systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
 		systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS)
 		termbox.Flush()
@@ -109,6 +109,8 @@ func handleCommand() {
 	case "saveas":
 		SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
 	}
+	systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
+	systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS)
 }
 
 // Updated saveCurrentState function using systemtools
