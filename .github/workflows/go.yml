@@ -38,7 +38,7 @@ jobs:
         run: go mod verify
 
       - name: Build
-        run: go build -v -o ste-text-editor ./...
+        run: go build -v -o ste ./...
 
       - name: Test
         run: go test -v ./...
@@ -57,44 +57,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ste-text-editor
-          path: ste-text-editor
-
-  # Optional: Add a separate job for different OS builds
-  build-cross-platform:
-    runs-on: ubuntu-latest
-    needs: build
-
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          # Exclude combinations that don't make sense
-          - goos: windows
-            goarch: arm64
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-
-      - name: Build for ${{ matrix.goos }}-${{ matrix.goarch }}
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-        run: |
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            go build -v -o ste-text-editor-${{ matrix.goos }}-${{ matrix.goarch }}.exe ./...
-          else
-            go build -v -o ste-text-editor-${{ matrix.goos }}-${{ matrix.goarch }} ./...
-          fi
-
-      - name: Upload cross-platform artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ste-text-editor-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ste-text-editor-${{ matrix.goos }}-${{ matrix.goarch }}*
+          name: ste
+          path: ste
