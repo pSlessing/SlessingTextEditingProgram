@@ -39,10 +39,10 @@ func DisplayBuffer(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountW
 }
 
 // DisplayStatus - Pass needed data as parameters
-func DisplayStatus(inputBuffer []rune, rows, cols int) {
+func DisplayStatus(inputBuffer []rune, rows, cols, colOffset int) {
 	var col int
 
-	for col = 0; col < cols+3; col++ {
+	for col = 0; col < cols+colOffset; col++ {
 		termbox.SetCell(col, rows+1, ' ', termbox.ColorBlack, termbox.ColorWhite)
 		if col < len(inputBuffer) {
 			termbox.SetCell(col, rows+1,

@@ -66,7 +66,7 @@ func mainEditorLoop() {
 
 		termbox.Flush()
 		systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
-		systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS)
+		systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS, LINECOUNTWIDTH)
 		termbox.Flush()
 		inputHandling()
 		termbox.Flush()
@@ -110,7 +110,7 @@ func handleCommand() {
 		SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
 	}
 	systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
-	systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS)
+	systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS, LINECOUNTWIDTH)
 }
 
 // Updated saveCurrentState function using systemtools
