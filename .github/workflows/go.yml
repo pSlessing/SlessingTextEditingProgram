@@ -21,6 +21,12 @@ jobs:
         with:
           go-version: '1.20'
 
+      - name: Initialize Go module if needed
+        run: |
+          if [ ! -f go.mod ]; then
+            go mod init ste
+          fi
+
       - name: Cache Go modules
         uses: actions/cache@v4
         with:
@@ -32,13 +38,15 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Download dependencies
-        run: go mod download
+        run: |
+          go mod tidy
+          go mod download
 
       - name: Verify dependencies
         run: go mod verify
 
       - name: Build
-        run: go build -v -o ste ./...
+        run: go build -v -o ste-text-editor ./...
 
       - name: Test
         run: go test -v ./...
