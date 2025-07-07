@@ -24,7 +24,9 @@ jobs:
       - name: Initialize Go module if needed
         run: |
           if [ ! -f go.mod ]; then
-            go mod init ste
+            go mod init ste-text-editor
+            # Fix import paths in Go files to use module name
+            find . -name "*.go" -exec sed -i 's|"ste-text-editor/|"ste-text-editor/|g' {} \;
           fi
 
       - name: Cache Go modules
@@ -46,7 +48,7 @@ jobs:
         run: go mod verify
 
       - name: Build
-        run: go build -v -o ste-text-editor ./...
+        run: go build -v -o STE.exe .
 
       - name: Test
         run: go test -v ./...
@@ -65,5 +67,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ste
-          path: ste
+          name: STE
+          path: STE.exe
