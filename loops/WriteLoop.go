@@ -44,23 +44,54 @@ func WriteLoop(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, rows, co
 			case termbox.KeyArrowLeft:
 				if cursorX > lineCountWidth {
 					cursorX--
+					// Horizontal scroll left if needed
+					if cursorX < lineCountWidth {
+						cursorX = lineCountWidth
+					}
 				} else if offsetX > 0 {
 					offsetX--
 				}
 			case termbox.KeyArrowRight:
 				if cursorY+offsetY < len(textBuffer) {
-					if cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
+					// Only allow moving right if not past end of line
+					lineLen := len(textBuffer[cursorY+offsetY])
+					if cursorX-lineCountWidth+offsetX < lineLen {
 						cursorX++
-					} else if offsetX+cursorX-lineCountWidth < len(textBuffer[cursorY+offsetY]) {
-						offsetX++
+						// Horizontal scroll right if needed
+						if cursorX >= cols+lineCountWidth {
+							offsetX++
+							cursorX = cols+lineCountWidth-1
+						}
 					}
 				}
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
+				// If at the left edge and more to the left, scroll left before deleting
+				if cursorX == lineCountWidth && offsetX > 0 {
+					offsetX--
+				}
 				textBuffer, cursorX, cursorY = deleteAtCursor(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
 				// Auto-scroll if cursor goes above visible area
 				if cursorY < 0 {
 					offsetY += cursorY
 					cursorY = 0
+				}
+				// After deletion, if no characters are visible in the current row, scroll left
+				visibleRow := cursorY + offsetY
+				if visibleRow >= 0 && visibleRow < len(textBuffer) {
+					line := textBuffer[visibleRow]
+					if offsetX >= len(line) && offsetX > 0 {
+						offsetX--
+						cursorX++;
+					}
+				}
+				// Horizontal scroll left if needed after delete
+				if cursorX < lineCountWidth && offsetX > 0 {
+					offsetX--
+					cursorX = lineCountWidth
+				}
+				// If at left edge and more to the left, scroll to show next char to be deleted
+				if cursorX == lineCountWidth && offsetX > 0 {
+					offsetX--
 				}
 			case termbox.KeyEnter:
 				textBuffer, cursorX, cursorY = insertEnter(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth)
@@ -73,6 +104,25 @@ func WriteLoop(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, rows, co
 				return cursorX, cursorY, textBuffer
 			default:
 				textBuffer, cursorX = insertRune(textBuffer, cursorX, cursorY, offsetX, offsetY, lineCountWidth, event.Ch)
+				// Ensure cursor is visible after insertion (horizontal scroll)
+				if cursorX >= cols+lineCountWidth {
+					offsetX++
+					cursorX = cols+lineCountWidth-1
+				}
+				if cursorX < lineCountWidth {
+					if offsetX > 0 {
+						offsetX--
+						cursorX = lineCountWidth
+					}
+				}
+				// Clamp cursor to end of line after insert
+				lineLen := len(textBuffer[cursorY+offsetY])
+				if cursorX-lineCountWidth+offsetX > lineLen {
+					cursorX = lineLen - offsetX + lineCountWidth
+					if cursorX < lineCountWidth {
+						cursorX = lineCountWidth
+					}
+				}
 			}
 		}
 
@@ -144,12 +194,12 @@ func insertRune(textBuffer [][]rune, cursorX, cursorY, offsetX, offsetY, lineCou
 		return textBuffer, cursorX
 	}
 
-	beforeSlice := textBuffer[CursorPosYinBuffer][0:CursorPosXinBuffer]
-	postSlice := textBuffer[CursorPosYinBuffer][CursorPosXinBuffer:]
-
-	newSlice := append(beforeSlice, insertrune)
-	newSlice = append(newSlice, postSlice...)
-	textBuffer[CursorPosYinBuffer] = newSlice
+	line := textBuffer[CursorPosYinBuffer]
+	newLine := make([]rune, len(line)+1)
+	copy(newLine, line[:CursorPosXinBuffer])
+	newLine[CursorPosXinBuffer] = insertrune
+	copy(newLine[CursorPosXinBuffer+1:], line[CursorPosXinBuffer:])
+	textBuffer[CursorPosYinBuffer] = newLine
 
 	return textBuffer, cursorX + 1
 }
