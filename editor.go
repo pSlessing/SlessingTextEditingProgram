@@ -50,7 +50,7 @@ func runEditor() {
 
 // #TODO Make this prettier?
 func titleLoop() {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	termbox.Clear(FGCOLOR, BGCOLOR)
 	PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
 	termbox.Flush()
 
@@ -58,7 +58,7 @@ func titleLoop() {
 		termbox.HideCursor()
 		event := termbox.PollEvent()
 		if event.Type == termbox.EventKey && event.Key == termbox.KeyEnter {
-			termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+			termbox.Clear(FGCOLOR, BGCOLOR)
 			termbox.Flush()
 			break
 		}

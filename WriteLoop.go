@@ -8,7 +8,7 @@ func WriteLoop() {
 	CURSORX = LINECOUNTWIDTH
 	CURSORY = 0
 	termbox.SetCursor(CURSORX, CURSORY)
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	termbox.Clear(FGCOLOR, BGCOLOR)
 	DisplayBuffer()
 	termbox.Flush()
 
@@ -140,7 +140,7 @@ func WriteLoop() {
 		}
 
 		termbox.SetCursor(CURSORX, CURSORY)
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		termbox.Clear(FGCOLOR, BGCOLOR)
 		DisplayBuffer()
 		termbox.Flush()
 	}

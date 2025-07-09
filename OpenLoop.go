@@ -10,8 +10,8 @@ func OpenLoop() {
 	for {
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 		DisplayBuffer()
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), termbox.ColorBlack, termbox.ColorWhite, "Open File:")
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(openBuffer))
+		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGFGCOLOR, MSGBGCOLOR, "Open File:")
+		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGFGCOLOR, MSGBGCOLOR, string(openBuffer))
 		termbox.Flush()
 
 		event := termbox.PollEvent()
