@@ -1,19 +1,18 @@
-package loops
+package main
 
 import (
 	"fmt"
 	"github.com/nsf/termbox-go"
-	"ste-text-editor/systemtools"
 )
 
-func SaveAsLoop(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidth int, sourceFile string) string {
+func SaveAsLoop() string {
 	var saveBuffer []rune
 
 	for {
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		systemtools.DisplayBuffer(textBuffer, offsetX, offsetY, rows, cols, lineCountWidth)
-		systemtools.PrintMessage((cols/2)-lineCountWidth, (rows / 2), termbox.ColorBlack, termbox.ColorWhite, "Save As:")
-		systemtools.PrintMessage((cols/2)-lineCountWidth, (rows/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(saveBuffer))
+		DisplayBuffer()
+		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), termbox.ColorBlack, termbox.ColorWhite, "Save As:")
+		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, termbox.ColorBlack, termbox.ColorWhite, string(saveBuffer))
 		termbox.Flush()
 
 		event := termbox.PollEvent()
@@ -21,9 +20,9 @@ func SaveAsLoop(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidt
 		if event.Key == termbox.KeyEnter {
 			filename := string(saveBuffer)
 			if filename != "" {
-				err := systemtools.WriteBufferToFile(textBuffer, filename)
+				err := WriteBufferToFile(TEXTBUFFER, filename)
 				if err != nil {
-					systemtools.PrintMessage(0, rows, termbox.ColorRed, termbox.ColorDefault,
+					PrintMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault,
 						fmt.Sprintf("Error saving file: %s", err.Error()))
 					termbox.Flush()
 					termbox.PollEvent()
@@ -42,5 +41,5 @@ func SaveAsLoop(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidt
 			saveBuffer = append(saveBuffer, event.Ch)
 		}
 	}
-	return sourceFile
+	return SOURCEFILE
 }

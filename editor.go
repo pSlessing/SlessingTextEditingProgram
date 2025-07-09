@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/nsf/termbox-go"
 	"os"
-	"ste-text-editor/loops"
-	"ste-text-editor/systemtools"
 	"strings"
 )
 
@@ -25,6 +23,15 @@ var TEXTBUFFER = [][]rune{
 var INPUTBUFFER []rune
 var LINECOUNTWIDTH = 3
 
+var BGCOLOR = termbox.ColorBlack
+var FGCOLOR = termbox.ColorWhite
+var STATUSBGCOLOR = termbox.ColorWhite
+var STATUSFGCOLOR = termbox.ColorBlack
+var MSGBGCOLOR = termbox.ColorWhite
+var MSGFGCOLOR = termbox.ColorBlack
+var LINECOUNTBGCOLOR = termbox.ColorWhite
+var LINECOUNTFGCOLOR = termbox.ColorCyan
+
 func runEditor() {
 	bootErr := termbox.Init()
 	if bootErr != nil {
@@ -34,6 +41,8 @@ func runEditor() {
 		os.Exit(1)
 	}
 
+	loadSettings()
+
 	titleLoop()
 	mainEditorLoop()
 	termbox.Close()
@@ -41,7 +50,7 @@ func runEditor() {
 
 func titleLoop() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	systemtools.PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
+	PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
 	termbox.Flush()
 
 	for {
@@ -65,8 +74,8 @@ func mainEditorLoop() {
 		}
 
 		termbox.Flush()
-		systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
-		systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS, LINECOUNTWIDTH)
+		DisplayBuffer()
+		DisplayStatus()
 		termbox.Flush()
 		inputHandling()
 		termbox.Flush()
@@ -101,28 +110,35 @@ func handleCommand() {
 		os.Exit(0)
 	case "write":
 		// Pass all needed variables to the write loop
-		CURSORX, CURSORY, TEXTBUFFER = loops.WriteLoop(TEXTBUFFER, CURSORX, CURSORY, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
+		WriteLoop()
 	case "open":
-		TEXTBUFFER, SOURCEFILE = loops.OpenLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+		OpenLoop()
 	case "save":
 		saveCurrentState()
 	case "saveas":
-		SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+		SOURCEFILE = SaveAsLoop()
 	}
-	systemtools.DisplayBuffer(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH)
-	systemtools.DisplayStatus(INPUTBUFFER, ROWS, COLS, LINECOUNTWIDTH)
+	DisplayBuffer()
+	DisplayStatus()
 }
 
 // Updated saveCurrentState function using systemtools
 func saveCurrentState() {
-	newSourceFile, err := systemtools.SaveCurrentState(TEXTBUFFER, SOURCEFILE, ROWS)
+	newSourceFile, err := SaveCurrentState()
 	if err != nil {
 		if SOURCEFILE == "" {
 			// No filename set, call save-as loop
-			SOURCEFILE = loops.SaveAsLoop(TEXTBUFFER, OFFSETX, OFFSETY, ROWS, COLS, LINECOUNTWIDTH, SOURCEFILE)
+			SOURCEFILE = SaveAsLoop()
 		}
 		// Error was already displayed in SaveCurrentState function
 	} else {
 		SOURCEFILE = newSourceFile
 	}
+}
+
+// Currently only color, should be expanded
+func loadSettings() {
+	//Check if settings exist in current path?
+	//Else, create json or ini or smth file with standard settings, prob color.json
+	//This should be done in another
 }

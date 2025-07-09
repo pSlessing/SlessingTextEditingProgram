@@ -1,4 +1,4 @@
-package systemtools
+package main
 
 import (
 	"github.com/mattn/go-runewidth"
@@ -15,23 +15,23 @@ func PrintMessage(col, row int, fg, bg termbox.Attribute, msg string) {
 }
 
 // DisplayBuffer - Pass all needed data as parameters
-func DisplayBuffer(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountWidth int) {
+func DisplayBuffer() {
 	var row, col int
 
-	for row = 0; row <= rows; row++ {
-		textBufferRow := row + offsetY
+	for row = 0; row <= ROWS; row++ {
+		textBufferRow := row + OFFSETY
 
-		DisplayLineNumber(row, textBufferRow, lineCountWidth, textBuffer)
+		DisplayLineNumber(row, textBufferRow, LINECOUNTWIDTH, TEXTBUFFER)
 
-		for col = 0; col < cols; col++ {
-			textBufferCol := col + offsetX
+		for col = 0; col < COLS; col++ {
+			textBufferCol := col + OFFSETY
 
 			if textBufferRow >= 0 &&
-				textBufferRow < len(textBuffer) &&
-				textBufferCol < len(textBuffer[textBufferRow]) {
+				textBufferRow < len(TEXTBUFFER) &&
+				textBufferCol < len(TEXTBUFFER[textBufferRow]) {
 
-				termbox.SetCell(col+lineCountWidth, row,
-					textBuffer[textBufferRow][textBufferCol],
+				termbox.SetCell(col+LINECOUNTWIDTH, row,
+					TEXTBUFFER[textBufferRow][textBufferCol],
 					termbox.ColorDefault, termbox.ColorDefault)
 			}
 		}
@@ -39,14 +39,14 @@ func DisplayBuffer(textBuffer [][]rune, offsetX, offsetY, rows, cols, lineCountW
 }
 
 // DisplayStatus - Pass needed data as parameters
-func DisplayStatus(inputBuffer []rune, rows, cols, colOffset int) {
+func DisplayStatus() {
 	var col int
 
-	for col = 0; col < cols+colOffset; col++ {
-		termbox.SetCell(col, rows+1, ' ', termbox.ColorBlack, termbox.ColorWhite)
-		if col < len(inputBuffer) {
-			termbox.SetCell(col, rows+1,
-				inputBuffer[col],
+	for col = 0; col < COLS+LINECOUNTWIDTH; col++ {
+		termbox.SetCell(col, ROWS+1, ' ', termbox.ColorBlack, termbox.ColorWhite)
+		if col < len(INPUTBUFFER) {
+			termbox.SetCell(col, ROWS+1,
+				INPUTBUFFER[col],
 				termbox.ColorBlack, termbox.ColorWhite)
 		}
 	}

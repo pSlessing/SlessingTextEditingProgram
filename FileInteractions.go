@@ -1,5 +1,4 @@
-// === systemtools/FileInteractions.go ===
-package systemtools
+package main
 
 import (
 	"bufio"
@@ -39,22 +38,22 @@ func WriteBufferToFile(textBuffer [][]rune, filename string) error {
 
 // SaveCurrentState saves the current textBuffer to the sourceFile
 // If no sourceFile is set, it returns an empty string to indicate save-as is needed
-func SaveCurrentState(textBuffer [][]rune, sourceFile string, rows int) (string, error) {
-	if sourceFile == "" {
+func SaveCurrentState() (string, error) {
+	if SOURCEFILE == "" {
 		// No file name set, caller should handle save-as
 		return "", fmt.Errorf("no filename set")
 	} else {
 		// Save to existing file
-		err := WriteBufferToFile(textBuffer, sourceFile)
+		err := WriteBufferToFile(TEXTBUFFER, SOURCEFILE)
 		if err != nil {
 			// Display error message to user
-			PrintMessage(0, rows, termbox.ColorRed, termbox.ColorDefault,
+			PrintMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault,
 				fmt.Sprintf("Error saving file: %s", err.Error()))
 			termbox.Flush()
 			termbox.PollEvent()
-			return sourceFile, err
+			return SOURCEFILE, err
 		}
-		return sourceFile, nil
+		return SOURCEFILE, nil
 	}
 }
 
