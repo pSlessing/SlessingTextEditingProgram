@@ -11,6 +11,7 @@ func SaveAsLoop() string {
 	for {
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 		DisplayBuffer()
+		DisplayStatus()
 		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGFGCOLOR, MSGBGCOLOR, "Save As:")
 		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGFGCOLOR, MSGBGCOLOR, string(saveBuffer))
 		termbox.Flush()

@@ -66,6 +66,7 @@ func titleLoop() {
 }
 
 func mainEditorLoop() {
+	CURSORX = LINECOUNTWIDTH
 	for {
 		COLS, ROWS = termbox.Size()
 		//Ive forgotten why this is 2, one for buffer, but why another? #TODO fck around n find out
@@ -113,7 +114,6 @@ func handleCommand() {
 		termbox.Close()
 		os.Exit(0)
 	case "write":
-		// Pass all needed variables to the write loop
 		WriteLoop()
 	case "open":
 		OpenLoop()
@@ -122,6 +122,7 @@ func handleCommand() {
 	case "saveas":
 		SOURCEFILE = SaveAsLoop()
 	}
+	termbox.Clear(FGCOLOR, BGCOLOR)
 	DisplayBuffer()
 	DisplayStatus()
 }

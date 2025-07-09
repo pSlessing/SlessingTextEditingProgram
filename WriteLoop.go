@@ -10,6 +10,7 @@ func WriteLoop() {
 	termbox.SetCursor(CURSORX, CURSORY)
 	termbox.Clear(FGCOLOR, BGCOLOR)
 	DisplayBuffer()
+	DisplayStatus()
 	termbox.Flush()
 
 	for {
@@ -142,6 +143,7 @@ func WriteLoop() {
 		termbox.SetCursor(CURSORX, CURSORY)
 		termbox.Clear(FGCOLOR, BGCOLOR)
 		DisplayBuffer()
+		DisplayStatus()
 		termbox.Flush()
 	}
 }
