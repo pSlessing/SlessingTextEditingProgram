@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// PrintMessage - Exported function (capital P)
+// #TODO should this be able to use any, or standard colors every time?
 func PrintMessage(col, row int, fg, bg termbox.Attribute, msg string) {
 	for _, c := range msg {
 		termbox.SetCell(col, row, c, fg, bg)
@@ -21,7 +21,7 @@ func DisplayBuffer() {
 	for row = 0; row <= ROWS; row++ {
 		textBufferRow := row + OFFSETY
 
-		DisplayLineNumber(row, textBufferRow, LINECOUNTWIDTH, TEXTBUFFER)
+		DisplayLineNumber(row, textBufferRow)
 
 		for col = 0; col < COLS; col++ {
 			textBufferCol := col + OFFSETY
@@ -32,44 +32,38 @@ func DisplayBuffer() {
 
 				termbox.SetCell(col+LINECOUNTWIDTH, row,
 					TEXTBUFFER[textBufferRow][textBufferCol],
-					termbox.ColorDefault, termbox.ColorDefault)
+					FGCOLOR, BGCOLOR)
 			}
 		}
 	}
 }
 
-// DisplayStatus - Pass needed data as parameters
 func DisplayStatus() {
 	var col int
 
 	for col = 0; col < COLS+LINECOUNTWIDTH; col++ {
-		termbox.SetCell(col, ROWS+1, ' ', termbox.ColorBlack, termbox.ColorWhite)
+		termbox.SetCell(col, ROWS+1, ' ', STATUSFGCOLOR, STATUSBGCOLOR)
 		if col < len(INPUTBUFFER) {
 			termbox.SetCell(col, ROWS+1,
 				INPUTBUFFER[col],
-				termbox.ColorBlack, termbox.ColorWhite)
+				STATUSFGCOLOR, STATUSBGCOLOR)
 		}
 	}
 }
 
-// DisplayLineNumber - Helper function
-func DisplayLineNumber(row int, textBufferRow int, lineCountWidth int, textBuffer [][]rune) {
+func DisplayLineNumber(row int, textBufferRow int) {
 	lineNumberStr := "~"
-	lineNumberColor := termbox.ColorCyan
-	bgColor := termbox.ColorWhite
 
-	if textBufferRow < len(textBuffer) {
+	if textBufferRow < len(TEXTBUFFER) {
 		lineNumberStr = strconv.Itoa(textBufferRow + 1)
-		lineNumberColor = termbox.ColorCyan
-		bgColor = termbox.ColorWhite
 	}
 
-	lineNumberOffset := lineCountWidth - len(lineNumberStr)
+	lineNumberOffset := LINECOUNTWIDTH - len(lineNumberStr)
 	if lineNumberOffset > 0 {
 		for i := 0; i < lineNumberOffset; i++ {
-			termbox.SetCell(i, row, ' ', lineNumberColor, bgColor)
+			termbox.SetCell(i, row, ' ', LINECOUNTFGCOLOR, LINECOUNTBGCOLOR)
 		}
 	}
 
-	PrintMessage(lineNumberOffset, row, lineNumberColor, bgColor, lineNumberStr)
+	PrintMessage(lineNumberOffset, row, LINECOUNTFGCOLOR, LINECOUNTBGCOLOR, lineNumberStr)
 }

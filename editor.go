@@ -48,6 +48,7 @@ func runEditor() {
 	termbox.Close()
 }
 
+// #TODO Make this prettier?
 func titleLoop() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
@@ -67,12 +68,15 @@ func titleLoop() {
 func mainEditorLoop() {
 	for {
 		COLS, ROWS = termbox.Size()
+		//Ive forgotten why this is 2, one for buffer, but why another? #TODO fck around n find out
 		ROWS -= 2
-		COLS -= 3
+		COLS -= LINECOUNTWIDTH
+		//Max width #TODO change to var
 		if COLS < 78 {
 			COLS = 78
 		}
 
+		// #TODO fix this warcrime
 		termbox.Flush()
 		DisplayBuffer()
 		DisplayStatus()

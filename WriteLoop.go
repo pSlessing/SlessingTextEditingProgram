@@ -236,6 +236,5 @@ func deleteAtCursor() {
 			return
 		}
 	}
-
 	return
 }
