@@ -55,8 +55,10 @@ func DisplayStatus() {
 	var currentColumn = CURSORX + OFFSETX - LINECOUNTWIDTH
 	var columnNumberStr = strconv.Itoa(currentColumn + 1)
 	// #TODO do the offsets more neat
-	PrintMessage(COLS-3, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, columnNumberStr)
-	PrintMessage(COLS-6, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, lineNumberStr)
+	PrintMessage(COLS, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, columnNumberStr)
+	PrintMessage(COLS-4, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, "col")
+	PrintMessage(COLS-8, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, lineNumberStr)
+	PrintMessage(COLS-12, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, "row")
 }
 
 func DisplayLineNumber(row int, textBufferRow int) {
