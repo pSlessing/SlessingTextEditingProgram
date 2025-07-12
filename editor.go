@@ -117,6 +117,9 @@ func handleCommand() {
 		WriteLoop()
 	case "open":
 		OpenLoop()
+		CURSORX = LINECOUNTWIDTH
+		CURSORY = 0
+		termbox.SetCursor(CURSORX, CURSORY)
 	case "save":
 		saveCurrentState()
 	case "saveas":

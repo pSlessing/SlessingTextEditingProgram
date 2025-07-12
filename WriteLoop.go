@@ -5,9 +5,6 @@ import (
 )
 
 func WriteLoop() {
-	CURSORX = LINECOUNTWIDTH
-	CURSORY = 0
-	termbox.SetCursor(CURSORX, CURSORY)
 	termbox.Clear(FGCOLOR, BGCOLOR)
 	DisplayBuffer()
 	DisplayStatus()
