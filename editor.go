@@ -78,12 +78,11 @@ func mainEditorLoop() {
 		}
 
 		// #TODO fix this warcrime
-		termbox.Flush()
 		DisplayBuffer()
 		DisplayStatus()
 		termbox.Flush()
 		inputHandling()
-		termbox.Flush()
+		termbox.SetCursor(CURSORX, CURSORY)
 	}
 }
 
@@ -91,20 +90,87 @@ func inputHandling() {
 	event := termbox.PollEvent()
 
 	if event.Type == termbox.EventKey {
-		if event.Key == termbox.KeyEnter {
-			handleCommand()
-			INPUTBUFFER = []rune{}
-		} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
-			if len(INPUTBUFFER) > 0 {
-				INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
+
+		switch event.Key {
+		case termbox.KeyEnter:
+			{
+				handleCommand()
+				INPUTBUFFER = []rune{}
 			}
-		} else {
+		case termbox.KeyBackspace:
+			{
+				if len(INPUTBUFFER) > 0 {
+					INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
+				}
+			}
+		case termbox.KeyBackspace2:
+			{
+				if len(INPUTBUFFER) > 0 {
+					INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
+				}
+			}
+		case termbox.KeyEsc:
+			{
+				return
+			}
+		case termbox.KeyArrowUp:
+			{
+				if CURSORY > 0 {
+					// Move cursor up within visible area
+					CURSORY--
+				} else if OFFSETY > 0 {
+					// Scroll up when cursor is at top
+					OFFSETY--
+				}
+				// Adjust cursor X if moving to a shorter line
+				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+				}
+			}
+		case termbox.KeyArrowDown:
+			{
+				if CURSORY < ROWS-1 && CURSORY+OFFSETY+1 < len(TEXTBUFFER) {
+					// Move cursor down within visible area
+					CURSORY++
+				} else if OFFSETY+ROWS < len(TEXTBUFFER) {
+					// Scroll down when cursor is at bottom
+					OFFSETY++
+				}
+				// Adjust cursor X if moving to a shorter line
+				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+				}
+			}
+		case termbox.KeyArrowLeft:
+			{
+				if CURSORX > LINECOUNTWIDTH {
+					CURSORX--
+					// Horizontal scroll left if needed
+					if CURSORX < LINECOUNTWIDTH {
+						CURSORX = LINECOUNTWIDTH
+					}
+				} else if OFFSETX > 0 {
+					OFFSETX--
+				}
+			}
+		case termbox.KeyArrowRight:
+			{
+				if CURSORY+OFFSETY < len(TEXTBUFFER) {
+					// Only allow moving right if not past end of line
+					lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
+					if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
+						CURSORX++
+						// Horizontal scroll right if needed
+						if CURSORX >= COLS+LINECOUNTWIDTH {
+							OFFSETX++
+							CURSORX = COLS + LINECOUNTWIDTH - 1
+						}
+					}
+				}
+			}
+		default:
 			INPUTBUFFER = append(INPUTBUFFER, event.Ch)
 		}
-	}
-
-	if event.Type == termbox.EventKey && event.Key == termbox.KeyEsc {
-		return
 	}
 }
 
