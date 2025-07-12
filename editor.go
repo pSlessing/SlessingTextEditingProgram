@@ -97,13 +97,7 @@ func inputHandling() {
 				handleCommand()
 				INPUTBUFFER = []rune{}
 			}
-		case termbox.KeyBackspace:
-			{
-				if len(INPUTBUFFER) > 0 {
-					INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
-				}
-			}
-		case termbox.KeyBackspace2:
+		case termbox.KeyBackspace, termbox.KeyBackspace2:
 			{
 				if len(INPUTBUFFER) > 0 {
 					INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
