@@ -32,6 +32,8 @@ var MSGFGCOLOR = termbox.ColorBlack
 var LINECOUNTBGCOLOR = termbox.ColorWhite
 var LINECOUNTFGCOLOR = termbox.ColorCyan
 
+var MAXWIDTH = 78
+
 func runEditor() {
 	bootErr := termbox.Init()
 	if bootErr != nil {
@@ -69,15 +71,14 @@ func mainEditorLoop() {
 	CURSORX = LINECOUNTWIDTH
 	for {
 		COLS, ROWS = termbox.Size()
-		//Ive forgotten why this is 2, one for buffer, but why another? #TODO fck around n find out
+		//Ive forgotten why this is 2, one for buffer, but why another?
+		//When 1, status bar is gone, so idk man
 		ROWS -= 2
 		COLS -= LINECOUNTWIDTH
-		//Max width #TODO change to var
-		if COLS < 78 {
-			COLS = 78
+		if COLS < MAXWIDTH {
+			COLS = MAXWIDTH
 		}
 
-		// #TODO fix this warcrime
 		DisplayBuffer()
 		DisplayStatus()
 		termbox.Flush()

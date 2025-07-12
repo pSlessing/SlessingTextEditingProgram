@@ -127,12 +127,15 @@ func WriteLoop() {
 		if CURSORY < 0 {
 			CURSORY = 0
 		}
+
 		if CURSORY >= ROWS {
 			CURSORY = ROWS - 1
 		}
+
 		if CURSORX < LINECOUNTWIDTH {
 			CURSORX = LINECOUNTWIDTH
 		}
+
 		if CURSORX >= COLS+LINECOUNTWIDTH {
 			CURSORX = COLS + LINECOUNTWIDTH - 1
 		}
