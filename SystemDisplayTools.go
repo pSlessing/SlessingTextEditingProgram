@@ -77,3 +77,11 @@ func DisplayLineNumber(row int, textBufferRow int) {
 
 	PrintMessage(lineNumberOffset, row, LINECOUNTFGCOLOR, LINECOUNTBGCOLOR, lineNumberStr)
 }
+
+func DisplaySettingsLoop() {
+
+}
+
+func DisplayColorsLoop() {
+
+}

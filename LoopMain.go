@@ -43,7 +43,12 @@ func runEditor() {
 		os.Exit(1)
 	}
 
-	loadSettings()
+	settings, err := LoadSettings()
+	if err != nil {
+		fmt.Printf("Error loading settings: %v\n", err)
+		return
+	}
+	ApplySettings(settings)
 
 	titleLoop()
 	mainEditorLoop()
@@ -185,6 +190,8 @@ func handleCommand() {
 		saveCurrentState()
 	case "saveas", "sa":
 		SOURCEFILE = SaveAsLoop()
+	case "settings", "se":
+		ChangeSettingsLoop()
 	}
 	termbox.Clear(FGCOLOR, BGCOLOR)
 	DisplayBuffer()
