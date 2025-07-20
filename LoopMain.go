@@ -171,19 +171,19 @@ func inputHandling() {
 
 func handleCommand() {
 	switch strings.ToLower(string(INPUTBUFFER)) {
-	case "quit":
+	case "quit", "q":
 		termbox.Close()
 		os.Exit(0)
-	case "write":
+	case "write", "w":
 		WriteLoop()
-	case "open":
+	case "open", "o":
 		OpenLoop()
 		CURSORX = LINECOUNTWIDTH
 		CURSORY = 0
 		termbox.SetCursor(CURSORX, CURSORY)
-	case "save":
+	case "save", "s":
 		saveCurrentState()
-	case "saveas":
+	case "saveas", "sa":
 		SOURCEFILE = SaveAsLoop()
 	}
 	termbox.Clear(FGCOLOR, BGCOLOR)
@@ -203,11 +203,4 @@ func saveCurrentState() {
 	} else {
 		SOURCEFILE = newSourceFile
 	}
-}
-
-// Currently only color, should be expanded
-func loadSettings() {
-	//Check if settings exist in current path?
-	//Else, create json or ini or smth file with standard settings, prob color.json
-	//This should be done in another
 }
