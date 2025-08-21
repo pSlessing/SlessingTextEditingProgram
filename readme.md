@@ -16,3 +16,17 @@ This is a project im using, both to learn GO, but also to implement a larger typ
 - Shorthand aliasing of commands for faster workflow
 - Cursor movement in Function mode
 - Cursor position being transient between loops (Except for when opening a new file)
+
+
+### Setup
+# 1. Initialize the Go module
+go mod init ste-text-editor
+
+# 2. Download and organize dependencies
+go mod tidy
+
+# 3. Download all dependencies to local cache
+go mod download
+
+# 4. Verify the dependencies haven't been tampered with
+go mod verify
