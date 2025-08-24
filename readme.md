@@ -30,3 +30,13 @@ go mod download
 
 # 4. Verify the dependencies haven't been tampered with
 go mod verify
+
+### Running the editor
+
+## Linux
+
+# Run directly using GO
+go run .
+
+# Or if GO is mad about unused variables due to a test build
+go run -gcflags="-l" .
