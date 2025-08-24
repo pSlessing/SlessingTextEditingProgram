@@ -181,7 +181,7 @@ func insertEnter() {
 	TEXTBUFFER = newTEXTBUFFER
 	CURSORX = LINECOUNTWIDTH
 	CURSORY++
-	return
+
 }
 
 func insertRune(insertrune rune) {
@@ -204,7 +204,6 @@ func insertRune(insertrune rune) {
 	copy(newLine[CursorPosXinBuffer+1:], line[CursorPosXinBuffer:])
 	TEXTBUFFER[CursorPosYinBuffer] = newLine
 	CURSORX++
-	return
 }
 
 func deleteAtCursor() {
@@ -238,5 +237,4 @@ func deleteAtCursor() {
 			return
 		}
 	}
-	return
 }
