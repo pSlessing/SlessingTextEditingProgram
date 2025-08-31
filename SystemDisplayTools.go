@@ -1,9 +1,10 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
-	"strconv"
 )
 
 // #TODO should this be able to use any, or standard colors every time?
@@ -24,7 +25,7 @@ func DisplayBuffer() {
 		DisplayLineNumber(row, textBufferRow)
 
 		for col = 0; col < COLS; col++ {
-			textBufferCol := col + OFFSETY
+			textBufferCol := col + OFFSETX
 
 			if textBufferRow >= 0 &&
 				textBufferRow < len(TEXTBUFFER) &&
