@@ -17,7 +17,8 @@ var ListOfColors = []termbox.Attribute{termbox.ColorBlack, termbox.ColorBlue, te
 func ChangeSettingsLoop() {
 
 	termbox.HideCursor()
-	noOfSettings := reflect.TypeOf(Settings{}).NumField()
+	// - 1 because we use indexing to apply settings
+	noOfSettings := reflect.TypeOf(Settings{}).NumField() - 1
 	var currentPos int = 0
 	var currentTempSettings Settings = GetCurrentSettings()
 
@@ -158,7 +159,7 @@ func ChangeSettingsLoop() {
 	}
 
 	RenderSettings := func() {
-		PrintMessage(0, currentPos, FGCOLOR, BGCOLOR, "X")
+		termbox.SetCell(0, currentPos, '■', FGCOLOR, BGCOLOR)
 		PrintMessage(1, 0, FGCOLOR, BGCOLOR, "Background")
 		PrintMessage(1, 1, FGCOLOR, BGCOLOR, "Foreground")
 		PrintMessage(1, 2, FGCOLOR, BGCOLOR, "Status BG")
@@ -178,6 +179,10 @@ func ChangeSettingsLoop() {
 		PrintMessage(len("LineCount FG")+2, 7, FGCOLOR, BGCOLOR, AttToName(currentTempSettings.LineCountFGColor))
 	}
 	//RenderExample := func() {}
+
+	termbox.Clear(FGCOLOR, BGCOLOR)
+	RenderSettings()
+	termbox.Flush()
 
 	for {
 		event := termbox.PollEvent()
