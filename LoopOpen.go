@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/nsf/termbox-go"
 )
 
@@ -8,12 +9,12 @@ func OpenLoop() {
 	var openBuffer []rune
 
 	for {
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		TERMINAL.Clear()
 		DisplayBuffer()
 		DisplayStatus()
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGFGCOLOR, MSGBGCOLOR, "Open File:")
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGFGCOLOR, MSGBGCOLOR, string(openBuffer))
-		termbox.Flush()
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGSTYLE, "Open File:")
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGSTYLE, string(openBuffer))
+		TERMINAL.Show()
 
 		event := termbox.PollEvent()
 
@@ -23,8 +24,8 @@ func OpenLoop() {
 				newTEXTBUFFER, err := OpenFile(filename)
 				if err != nil {
 					// Show error but continue with current buffer
-					PrintMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault, "Error opening file")
-					termbox.Flush()
+					PrintMessage(0, ROWS, tcell.ColorRed, tcell.ColorDefault, "Error opening file")
+					TERMINAL.Show()
 					termbox.PollEvent()
 					return
 				}

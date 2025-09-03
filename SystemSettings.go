@@ -4,34 +4,35 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/nsf/termbox-go"
 	"os"
 	"path/filepath"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 // Settings represents the configuration structure for termbox colors
 type Settings struct {
-	BGColor          termbox.Attribute `json:"bg_color"`
-	FGColor          termbox.Attribute `json:"fg_color"`
-	StatusBGColor    termbox.Attribute `json:"status_bg_color"`
-	StatusFGColor    termbox.Attribute `json:"status_fg_color"`
-	MsgBGColor       termbox.Attribute `json:"msg_bg_color"`
-	MsgFGColor       termbox.Attribute `json:"msg_fg_color"`
-	LineCountBGColor termbox.Attribute `json:"line_count_bg_color"`
-	LineCountFGColor termbox.Attribute `json:"line_count_fg_color"`
+	BGColor          tcell.Color `json:"bg_color"`
+	FGColor          tcell.Color `json:"fg_color"`
+	StatusBGColor    tcell.Color `json:"status_bg_color"`
+	StatusFGColor    tcell.Color `json:"status_fg_color"`
+	MsgBGColor       tcell.Color `json:"msg_bg_color"`
+	MsgFGColor       tcell.Color `json:"msg_fg_color"`
+	LineCountBGColor tcell.Color `json:"line_count_bg_color"`
+	LineCountFGColor tcell.Color `json:"line_count_fg_color"`
 }
 
 // GetDefaultSettings returns the default configuration
 func GetDefaultSettings() Settings {
 	return Settings{
-		BGColor:          termbox.ColorBlack,
-		FGColor:          termbox.ColorWhite,
-		StatusBGColor:    termbox.ColorWhite,
-		StatusFGColor:    termbox.ColorBlack,
-		MsgBGColor:       termbox.ColorWhite,
-		MsgFGColor:       termbox.ColorBlack,
-		LineCountBGColor: termbox.ColorWhite,
-		LineCountFGColor: termbox.ColorCyan,
+		BGColor:          tcell.ColorBlack,
+		FGColor:          tcell.ColorWhite,
+		StatusBGColor:    tcell.ColorWhite,
+		StatusFGColor:    tcell.ColorBlack,
+		MsgBGColor:       tcell.ColorWhite,
+		MsgFGColor:       tcell.ColorBlack,
+		LineCountBGColor: tcell.ColorWhite,
+		LineCountFGColor: tcell.ColorLightBlue,
 	}
 }
 
@@ -42,7 +43,7 @@ func SaveSettings(settings Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to get user config directory: %w", err)
 	}
-	configDir = filepath.Join(configDir, "termbox-editor")
+	configDir = filepath.Join(configDir, "SlessingTextEditor")
 
 	// Ensure the config directory exists
 	if err := os.MkdirAll(configDir, 0755); err != nil {
@@ -81,7 +82,7 @@ func LoadSettings() (Settings, error) {
 	if err != nil {
 		return Settings{}, fmt.Errorf("failed to get user config directory: %w", err)
 	}
-	configDir = filepath.Join(configDir, "termbox-editor")
+	configDir = filepath.Join(configDir, "SlessingTextEditor")
 
 	configPath := filepath.Join(configDir, "config.json")
 
@@ -137,27 +138,28 @@ func JSONToSettings(jsonStr string) (Settings, error) {
 
 // ApplySettings applies the loaded settings to the global color variables
 func ApplySettings(settings Settings) {
-	BGCOLOR = settings.BGColor
-	FGCOLOR = settings.FGColor
-	STATUSBGCOLOR = settings.StatusBGColor
-	STATUSFGCOLOR = settings.StatusFGColor
-	MSGBGCOLOR = settings.MsgBGColor
-	MSGFGCOLOR = settings.MsgFGColor
-	LINECOUNTBGCOLOR = settings.LineCountBGColor
-	LINECOUNTFGCOLOR = settings.LineCountFGColor
+	MAINSTYLE = tcell.StyleDefault.Background(settings.BGColor).Foreground(settings.FGColor)
+	STATUSSTYLE = tcell.StyleDefault.Background(settings.StatusBGColor).Foreground(settings.StatusFGColor)
+	MSGSTYLE = tcell.StyleDefault.Background(settings.MsgBGColor).Foreground(settings.MsgFGColor)
+	LINECOUNTSTYLE = tcell.StyleDefault.Background(settings.LineCountBGColor).Foreground(settings.LineCountFGColor)
+
 }
 
 // GetCurrentSettings creates a Settings struct from the current global variables
 func GetCurrentSettings() Settings {
+	mainfg, mainbg, _ := MAINSTYLE.Decompose()
+	statusfg, statusbg, _ := STATUSSTYLE.Decompose()
+	msgfg, msgbg, _ := MSGSTYLE.Decompose()
+	linecountfg, linecountbg, _ := LINECOUNTSTYLE.Decompose()
 	return Settings{
-		BGColor:          BGCOLOR,
-		FGColor:          FGCOLOR,
-		StatusBGColor:    STATUSBGCOLOR,
-		StatusFGColor:    STATUSFGCOLOR,
-		MsgBGColor:       MSGBGCOLOR,
-		MsgFGColor:       MSGFGCOLOR,
-		LineCountBGColor: LINECOUNTBGCOLOR,
-		LineCountFGColor: LINECOUNTFGCOLOR,
+		BGColor:          mainbg,
+		FGColor:          mainfg,
+		StatusBGColor:    statusbg,
+		StatusFGColor:    statusfg,
+		MsgBGColor:       msgbg,
+		MsgFGColor:       msgfg,
+		LineCountBGColor: linecountbg,
+		LineCountFGColor: linecountfg,
 	}
 }
 

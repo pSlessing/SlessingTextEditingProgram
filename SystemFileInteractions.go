@@ -3,8 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/nsf/termbox-go"
 	"os"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 // WriteBufferToFile writes the textBuffer contents to the specified file
@@ -47,10 +48,10 @@ func SaveCurrentState() (string, error) {
 		err := WriteBufferToFile(TEXTBUFFER, SOURCEFILE)
 		if err != nil {
 			// Display error message to user
-			PrintMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault,
+			PrintMessage(0, ROWS, tcell.ColorRed, tcell.ColorDefault,
 				fmt.Sprintf("Error saving file: %s", err.Error()))
-			termbox.Flush()
-			termbox.PollEvent()
+			TERMINAL.Show()
+			TERMINAL.PollEvent()
 			return SOURCEFILE, err
 		}
 		return SOURCEFILE, nil

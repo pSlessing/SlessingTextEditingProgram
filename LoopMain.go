@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/nsf/termbox-go"
 	"os"
 	"strings"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 var (
@@ -23,23 +24,20 @@ var TEXTBUFFER = [][]rune{
 var INPUTBUFFER []rune
 var LINECOUNTWIDTH = 3
 
-var BGCOLOR = termbox.ColorBlack
-var FGCOLOR = termbox.ColorWhite
-var STATUSBGCOLOR = termbox.ColorWhite
-var STATUSFGCOLOR = termbox.ColorBlack
-var MSGBGCOLOR = termbox.ColorWhite
-var MSGFGCOLOR = termbox.ColorBlack
-var LINECOUNTBGCOLOR = termbox.ColorWhite
-var LINECOUNTFGCOLOR = termbox.ColorCyan
+var MAINSTYLE = tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+var STATUSSTYLE = tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
+var MSGSTYLE = tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
+var LINECOUNTSTYLE = tcell.StyleDefault.Foreground(tcell.ColorLightBlue).Background(tcell.ColorWhite)
+var TERMINAL, bootErr = tcell.NewScreen()
 
 var MAXWIDTH = 78
 
 func runEditor() {
-	bootErr := termbox.Init()
+	TERMINAL.Init()
 	if bootErr != nil {
 		fmt.Println(bootErr)
 		fmt.Println("Error initializing termbox. STE could not launch. Error message seen above, gl troubleshooting!")
-		termbox.PollEvent()
+		TERMINAL.PollEvent()
 		os.Exit(1)
 	}
 
@@ -52,21 +50,19 @@ func runEditor() {
 
 	titleLoop()
 	mainEditorLoop()
-	termbox.Close()
 }
 
 // #TODO Make this prettier?
 func titleLoop() {
-	termbox.Clear(FGCOLOR, BGCOLOR)
-	PrintMessage(25, 11, termbox.ColorDefault, termbox.ColorDefault, "STE - Slessing Text Editor")
-	termbox.Flush()
+	TERMINAL.Clear()
+	//Print title here
+	TERMINAL.Show()
 
 	for {
-		termbox.HideCursor()
-		event := termbox.PollEvent()
-		if event.Type == termbox.EventKey && event.Key == termbox.KeyEnter {
-			termbox.Clear(FGCOLOR, BGCOLOR)
-			termbox.Flush()
+		TERMINAL.HideCursor()
+		event := TERMINAL.PollEvent()
+		switch event.(type) {
+		case *tcell.EventKey:
 			break
 		}
 	}
@@ -75,7 +71,7 @@ func titleLoop() {
 func mainEditorLoop() {
 	CURSORX = LINECOUNTWIDTH
 	for {
-		COLS, ROWS = termbox.Size()
+		COLS, ROWS = TERMINAL.Size()
 		//Ive forgotten why this is 2, one for buffer, but why another?
 		//When 1, status bar is gone, so idk man
 		ROWS -= 2
@@ -86,98 +82,106 @@ func mainEditorLoop() {
 
 		DisplayBuffer()
 		DisplayStatus()
-		termbox.Flush()
+		TERMINAL.Show()
 		inputHandling()
-		termbox.SetCursor(CURSORX, CURSORY)
+		//TERMINAL.SetCursor(CURSORX, CURSORY)
+
 	}
 }
 
 func inputHandling() {
-	event := termbox.PollEvent()
+	event := TERMINAL.PollEvent()
 
-	if event.Type == termbox.EventKey {
+	switch ev := event.(type) {
 
-		switch event.Key {
-		case termbox.KeyEnter:
-			{
-				handleCommand()
-				INPUTBUFFER = []rune{}
-			}
-		case termbox.KeyBackspace, termbox.KeyBackspace2:
-			{
-				if len(INPUTBUFFER) > 0 {
-					INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
+	case *tcell.EventKey:
+		mod, key, ch := ev.Modifiers(), ev.Key(), ev.Rune()
+		if mod == tcell.ModNone {
+			switch key {
+			case tcell.KeyEnter:
+				{
+					handleCommand()
+					INPUTBUFFER = []rune{}
 				}
-			}
-		case termbox.KeyEsc:
-			{
-				return
-			}
-		case termbox.KeyArrowUp:
-			{
-				if CURSORY > 0 {
-					// Move cursor up within visible area
-					CURSORY--
-				} else if OFFSETY > 0 {
-					// Scroll up when cursor is at top
-					OFFSETY--
-				}
-				// Adjust cursor X if moving to a shorter line
-				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
-					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
-				}
-			}
-		case termbox.KeyArrowDown:
-			{
-				if CURSORY < ROWS-1 && CURSORY+OFFSETY+1 < len(TEXTBUFFER) {
-					// Move cursor down within visible area
-					CURSORY++
-				} else if OFFSETY+ROWS < len(TEXTBUFFER) {
-					// Scroll down when cursor is at bottom
-					OFFSETY++
-				}
-				// Adjust cursor X if moving to a shorter line
-				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
-					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
-				}
-			}
-		case termbox.KeyArrowLeft:
-			{
-				if CURSORX > LINECOUNTWIDTH {
-					CURSORX--
-					// Horizontal scroll left if needed
-					if CURSORX < LINECOUNTWIDTH {
-						CURSORX = LINECOUNTWIDTH
+			case tcell.KeyBackspace, tcell.KeyBackspace2:
+				{
+					if len(INPUTBUFFER) > 0 {
+						INPUTBUFFER = INPUTBUFFER[:len(INPUTBUFFER)-1]
 					}
-				} else if OFFSETX > 0 {
-					OFFSETX--
 				}
-			}
-		case termbox.KeyArrowRight:
-			{
-				if CURSORY+OFFSETY < len(TEXTBUFFER) {
-					// Only allow moving right if not past end of line
-					lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
-					if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
-						CURSORX++
-						// Horizontal scroll right if needed
-						if CURSORX >= COLS+LINECOUNTWIDTH {
-							OFFSETX++
-							CURSORX = COLS + LINECOUNTWIDTH - 1
+			case tcell.KeyEsc:
+				{
+					return
+				}
+			case tcell.KeyUp:
+				{
+					if CURSORY > 0 {
+						// Move cursor up within visible area
+						CURSORY--
+					} else if OFFSETY > 0 {
+						// Scroll up when cursor is at top
+						OFFSETY--
+					}
+					// Adjust cursor X if moving to a shorter line
+					if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+						CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+					}
+				}
+			case tcell.KeyDown:
+				{
+					if CURSORY < ROWS-1 && CURSORY+OFFSETY+1 < len(TEXTBUFFER) {
+						// Move cursor down within visible area
+						CURSORY++
+					} else if OFFSETY+ROWS < len(TEXTBUFFER) {
+						// Scroll down when cursor is at bottom
+						OFFSETY++
+					}
+					// Adjust cursor X if moving to a shorter line
+					if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+						CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+					}
+				}
+			case tcell.KeyLeft:
+				{
+					if CURSORX > LINECOUNTWIDTH {
+						CURSORX--
+						// Horizontal scroll left if needed
+						if CURSORX < LINECOUNTWIDTH {
+							CURSORX = LINECOUNTWIDTH
+						}
+					} else if OFFSETX > 0 {
+						OFFSETX--
+					}
+				}
+			case tcell.KeyRight:
+				{
+					if CURSORY+OFFSETY < len(TEXTBUFFER) {
+						// Only allow moving right if not past end of line
+						lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
+						if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
+							CURSORX++
+							// Horizontal scroll right if needed
+							if CURSORX >= COLS+LINECOUNTWIDTH {
+								OFFSETX++
+								CURSORX = COLS + LINECOUNTWIDTH - 1
+							}
 						}
 					}
 				}
+			default:
+				INPUTBUFFER = append(INPUTBUFFER, ch)
 			}
-		default:
-			INPUTBUFFER = append(INPUTBUFFER, event.Ch)
+		} else if mod == tcell.ModCtrl {
+
+		} else if mod == tcell.ModAlt {
 		}
+
 	}
 }
 
 func handleCommand() {
 	switch strings.ToLower(string(INPUTBUFFER)) {
 	case "quit", "q":
-		termbox.Close()
 		os.Exit(0)
 	case "write", "w":
 		WriteLoop()
@@ -185,15 +189,15 @@ func handleCommand() {
 		OpenLoop()
 		CURSORX = LINECOUNTWIDTH
 		CURSORY = 0
-		termbox.SetCursor(CURSORX, CURSORY)
+		//termbox.SetCursor(CURSORX, CURSORY)
 	case "save", "s":
 		saveCurrentState()
 	case "saveas", "sa":
 		SOURCEFILE = SaveAsLoop()
 	case "settings", "se":
-		ChangeSettingsLoop()
+		//ChangeSettingsLoop()
 	}
-	termbox.Clear(FGCOLOR, BGCOLOR)
+	TERMINAL.Clear()
 	DisplayBuffer()
 	DisplayStatus()
 }

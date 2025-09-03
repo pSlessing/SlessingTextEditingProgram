@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/gdamore/tcell/v2"
 	"github.com/nsf/termbox-go"
 )
 
@@ -9,12 +11,12 @@ func SaveAsLoop() string {
 	var saveBuffer []rune
 
 	for {
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		TERMINAL.Clear()
 		DisplayBuffer()
 		DisplayStatus()
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGFGCOLOR, MSGBGCOLOR, "Save As:")
-		PrintMessage((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGFGCOLOR, MSGBGCOLOR, string(saveBuffer))
-		termbox.Flush()
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGSTYLE, "Save As:")
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGSTYLE, string(saveBuffer))
+		TERMINAL.Show()
 
 		event := termbox.PollEvent()
 
@@ -23,9 +25,9 @@ func SaveAsLoop() string {
 			if filename != "" {
 				err := WriteBufferToFile(TEXTBUFFER, filename)
 				if err != nil {
-					PrintMessage(0, ROWS, termbox.ColorRed, termbox.ColorDefault,
+					PrintMessage(0, ROWS, tcell.ColorRed, tcell.ColorDefault,
 						fmt.Sprintf("Error saving file: %s", err.Error()))
-					termbox.Flush()
+					TERMINAL.Show()
 					termbox.PollEvent()
 				} else {
 					return filename

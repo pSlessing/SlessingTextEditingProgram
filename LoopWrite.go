@@ -1,150 +1,162 @@
 package main
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/nsf/termbox-go"
 )
 
 func WriteLoop() {
-	termbox.Clear(FGCOLOR, BGCOLOR)
+	TERMINAL.Clear()
 	DisplayBuffer()
 	DisplayStatus()
-	termbox.Flush()
+	TERMINAL.Show()
 
 	for {
-		event := termbox.PollEvent()
-		if event.Type == termbox.EventKey {
-			switch event.Key {
-			case termbox.KeyArrowUp:
-				if CURSORY > 0 {
-					// Move cursor up within visible area
-					CURSORY--
-				} else if OFFSETY > 0 {
-					// Scroll up when cursor is at top
-					OFFSETY--
-				}
-				// Adjust cursor X if moving to a shorter line
-				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
-					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
-				}
-			case termbox.KeyArrowDown:
-				if CURSORY < ROWS-1 && CURSORY+OFFSETY+1 < len(TEXTBUFFER) {
-					// Move cursor down within visible area
-					CURSORY++
-				} else if OFFSETY+ROWS < len(TEXTBUFFER) {
-					// Scroll down when cursor is at bottom
-					OFFSETY++
-				}
-				// Adjust cursor X if moving to a shorter line
-				if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
-					CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
-				}
-			case termbox.KeyArrowLeft:
-				if CURSORX > LINECOUNTWIDTH {
-					CURSORX--
-					// Horizontal scroll left if needed
-					if CURSORX < LINECOUNTWIDTH {
+		event := TERMINAL.PollEvent()
+		switch ev := event.(type) {
+		case *tcell.EventKey:
+			mod, key, ch := ev.Modifiers(), ev.Key(), ev.Rune()
+			if mod == tcell.ModNone {
+				switch key {
+				case tcell.KeyUp:
+					if CURSORY > 0 {
+						// Move cursor up within visible area
+						CURSORY--
+					} else if OFFSETY > 0 {
+						// Scroll up when cursor is at top
+						OFFSETY--
+					}
+					// Adjust cursor X if moving to a shorter line
+					if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+						CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+					}
+				case tcell.KeyDown:
+					if CURSORY < ROWS-1 && CURSORY+OFFSETY+1 < len(TEXTBUFFER) {
+						// Move cursor down within visible area
+						CURSORY++
+					} else if OFFSETY+ROWS < len(TEXTBUFFER) {
+						// Scroll down when cursor is at bottom
+						OFFSETY++
+					}
+					// Adjust cursor X if moving to a shorter line
+					if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORX-LINECOUNTWIDTH > len(TEXTBUFFER[CURSORY+OFFSETY]) {
+						CURSORX = len(TEXTBUFFER[CURSORY+OFFSETY]) + LINECOUNTWIDTH
+					}
+				case tcell.KeyLeft:
+					if CURSORX > LINECOUNTWIDTH {
+						CURSORX--
+						// Horizontal scroll left if needed
+						if CURSORX < LINECOUNTWIDTH {
+							CURSORX = LINECOUNTWIDTH
+						}
+					} else if OFFSETX > 0 {
+						OFFSETX--
+					}
+				case tcell.KeyRight:
+					if CURSORY+OFFSETY < len(TEXTBUFFER) {
+						// Only allow moving right if not past end of line
+						lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
+						if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
+							CURSORX++
+							// Horizontal scroll right if needed
+							if CURSORX >= COLS+LINECOUNTWIDTH {
+								OFFSETX++
+								CURSORX = COLS + LINECOUNTWIDTH - 1
+							}
+						}
+					}
+				case tcell.KeyBackspace:
+					// If at the left edge and more to the left, scroll left before deleting
+					if CURSORX == LINECOUNTWIDTH && OFFSETX > 0 {
+						OFFSETX--
+					}
+					deleteAtCursor()
+					// Auto-scroll if cursor goes above visible area
+					if CURSORY < 0 {
+						OFFSETY += CURSORY
+						CURSORY = 0
+					}
+					// After deletion, if no characters are visible in the current row, scroll left
+					visibleRow := CURSORY + OFFSETY
+					if visibleRow >= 0 && visibleRow < len(TEXTBUFFER) {
+						line := TEXTBUFFER[visibleRow]
+						if OFFSETX >= len(line) && OFFSETX > 0 {
+							OFFSETX--
+							CURSORX++
+						}
+					}
+					// Horizontal scroll left if needed after delete
+					if CURSORX < LINECOUNTWIDTH && OFFSETX > 0 {
+						OFFSETX--
 						CURSORX = LINECOUNTWIDTH
 					}
-				} else if OFFSETX > 0 {
-					OFFSETX--
-				}
-			case termbox.KeyArrowRight:
-				if CURSORY+OFFSETY < len(TEXTBUFFER) {
-					// Only allow moving right if not past end of line
+					// If at left edge and more to the left, scroll to show next char to be deleted
+					if CURSORX == LINECOUNTWIDTH && OFFSETX > 0 {
+						OFFSETX--
+					}
+				case tcell.KeyEnter:
+					insertEnter()
+					// Auto-scroll if cursor goes below visible area
+					if CURSORY >= ROWS {
+						OFFSETY += CURSORY - ROWS + 1
+						CURSORY = ROWS - 1
+					}
+				case tcell.KeyEsc:
+					return
+				default:
+					insertRune(ch)
+					// Ensure cursor is visible after insertion (horizontal scroll)
+					if CURSORX >= COLS+LINECOUNTWIDTH {
+						OFFSETX++
+						CURSORX = COLS + LINECOUNTWIDTH - 1
+					}
+					if CURSORX < LINECOUNTWIDTH {
+						if OFFSETX > 0 {
+							OFFSETX--
+							CURSORX = LINECOUNTWIDTH
+						}
+					}
+					// Clamp cursor to end of line after insert
 					lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
-					if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
-						CURSORX++
-						// Horizontal scroll right if needed
-						if CURSORX >= COLS+LINECOUNTWIDTH {
-							OFFSETX++
-							CURSORX = COLS + LINECOUNTWIDTH - 1
+					if CURSORX-LINECOUNTWIDTH+OFFSETX > lineLen {
+						CURSORX = lineLen - OFFSETX + LINECOUNTWIDTH
+						if CURSORX < LINECOUNTWIDTH {
+							CURSORX = LINECOUNTWIDTH
 						}
 					}
 				}
-			case termbox.KeyBackspace, termbox.KeyBackspace2:
-				// If at the left edge and more to the left, scroll left before deleting
-				if CURSORX == LINECOUNTWIDTH && OFFSETX > 0 {
-					OFFSETX--
-				}
-				deleteAtCursor()
-				// Auto-scroll if cursor goes above visible area
-				if CURSORY < 0 {
-					OFFSETY += CURSORY
-					CURSORY = 0
-				}
-				// After deletion, if no characters are visible in the current row, scroll left
-				visibleRow := CURSORY + OFFSETY
-				if visibleRow >= 0 && visibleRow < len(TEXTBUFFER) {
-					line := TEXTBUFFER[visibleRow]
-					if OFFSETX >= len(line) && OFFSETX > 0 {
-						OFFSETX--
-						CURSORX++
-					}
-				}
-				// Horizontal scroll left if needed after delete
-				if CURSORX < LINECOUNTWIDTH && OFFSETX > 0 {
-					OFFSETX--
-					CURSORX = LINECOUNTWIDTH
-				}
-				// If at left edge and more to the left, scroll to show next char to be deleted
-				if CURSORX == LINECOUNTWIDTH && OFFSETX > 0 {
-					OFFSETX--
-				}
-			case termbox.KeyEnter:
-				insertEnter()
-				// Auto-scroll if cursor goes below visible area
-				if CURSORY >= ROWS {
-					OFFSETY += CURSORY - ROWS + 1
-					CURSORY = ROWS - 1
-				}
-			case termbox.KeyEsc:
-				return
-			default:
-				insertRune(event.Ch)
-				// Ensure cursor is visible after insertion (horizontal scroll)
-				if CURSORX >= COLS+LINECOUNTWIDTH {
-					OFFSETX++
-					CURSORX = COLS + LINECOUNTWIDTH - 1
-				}
-				if CURSORX < LINECOUNTWIDTH {
-					if OFFSETX > 0 {
-						OFFSETX--
-						CURSORX = LINECOUNTWIDTH
-					}
-				}
-				// Clamp cursor to end of line after insert
-				lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
-				if CURSORX-LINECOUNTWIDTH+OFFSETX > lineLen {
-					CURSORX = lineLen - OFFSETX + LINECOUNTWIDTH
-					if CURSORX < LINECOUNTWIDTH {
-						CURSORX = LINECOUNTWIDTH
-					}
-				}
 			}
-		}
+			if mod == tcell.ModNone {
 
-		// Ensure cursor stays within bounds
-		if CURSORY < 0 {
-			CURSORY = 0
-		}
+			} else if mod == tcell.ModCtrl {
 
-		if CURSORY >= ROWS {
-			CURSORY = ROWS - 1
-		}
+			} else if mod == tcell.ModAlt {
 
-		if CURSORX < LINECOUNTWIDTH {
-			CURSORX = LINECOUNTWIDTH
-		}
+			}
 
-		if CURSORX >= COLS+LINECOUNTWIDTH {
-			CURSORX = COLS + LINECOUNTWIDTH - 1
-		}
+			// Ensure cursor stays within bounds
+			if CURSORY < 0 {
+				CURSORY = 0
+			}
 
-		termbox.SetCursor(CURSORX, CURSORY)
-		termbox.Clear(FGCOLOR, BGCOLOR)
-		DisplayBuffer()
-		DisplayStatus()
-		termbox.Flush()
+			if CURSORY >= ROWS {
+				CURSORY = ROWS - 1
+			}
+
+			if CURSORX < LINECOUNTWIDTH {
+				CURSORX = LINECOUNTWIDTH
+			}
+
+			if CURSORX >= COLS+LINECOUNTWIDTH {
+				CURSORX = COLS + LINECOUNTWIDTH - 1
+			}
+
+			//TODO:termbox.SetCursor(CURSORX, CURSORY)
+			TERMINAL.Clear()
+			DisplayBuffer()
+			DisplayStatus()
+			TERMINAL.Show()
+		}
 	}
 }
 
@@ -192,7 +204,7 @@ func insertRune(insertrune rune) {
 		CursorPosYinBuffer >= len(TEXTBUFFER) ||
 		CursorPosXinBuffer < 0 ||
 		CursorPosXinBuffer > len(TEXTBUFFER[CursorPosYinBuffer]) {
-		PrintMessage(0, 0, termbox.ColorDefault, termbox.ColorRed, "INSERT WAS NOT INBOUND")
+		PrintMessage(0, 0, tcell.ColorBlack, tcell.ColorRed, "INSERT WAS NOT INBOUND")
 		termbox.PollEvent()
 		return
 	}

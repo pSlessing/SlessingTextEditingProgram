@@ -3,14 +3,22 @@ package main
 import (
 	"strconv"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
-	"github.com/nsf/termbox-go"
 )
 
 // #TODO should this be able to use any, or standard colors every time?
-func PrintMessage(col, row int, fg, bg termbox.Attribute, msg string) {
+func PrintMessage(col, row int, fg, bg tcell.Color, msg string) {
 	for _, c := range msg {
-		termbox.SetCell(col, row, c, fg, bg)
+		currStyle := tcell.StyleDefault.Foreground(fg).Background(bg)
+		TERMINAL.SetContent(col, row, c, nil, currStyle)
+		col += runewidth.RuneWidth(c)
+	}
+}
+
+func PrintMessageStyle(col, row int, style tcell.Style, msg string) {
+	for _, c := range msg {
+		TERMINAL.SetContent(col, row, c, nil, style)
 		col += runewidth.RuneWidth(c)
 	}
 }
@@ -30,10 +38,9 @@ func DisplayBuffer() {
 			if textBufferRow >= 0 &&
 				textBufferRow < len(TEXTBUFFER) &&
 				textBufferCol < len(TEXTBUFFER[textBufferRow]) {
-
-				termbox.SetCell(col+LINECOUNTWIDTH, row,
+				TERMINAL.SetContent(col+LINECOUNTWIDTH, row,
 					TEXTBUFFER[textBufferRow][textBufferCol],
-					FGCOLOR, BGCOLOR)
+					nil, MAINSTYLE)
 			}
 		}
 	}
@@ -43,11 +50,11 @@ func DisplayStatus() {
 	var col int
 
 	for col = 0; col < COLS+LINECOUNTWIDTH; col++ {
-		termbox.SetCell(col, ROWS+1, ' ', STATUSFGCOLOR, STATUSBGCOLOR)
+		TERMINAL.SetContent(col, ROWS+1, ' ', nil, STATUSSTYLE)
 		if col < len(INPUTBUFFER) {
-			termbox.SetCell(col, ROWS+1,
+			TERMINAL.SetContent(col, ROWS+1,
 				INPUTBUFFER[col],
-				STATUSFGCOLOR, STATUSBGCOLOR)
+				nil, STATUSSTYLE)
 		}
 	}
 
@@ -56,10 +63,10 @@ func DisplayStatus() {
 	var currentColumn = CURSORX + OFFSETX - LINECOUNTWIDTH
 	var columnNumberStr = strconv.Itoa(currentColumn + 1)
 	// #TODO do the offsets more neat
-	PrintMessage(COLS, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, columnNumberStr)
-	PrintMessage(COLS-4, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, "col")
-	PrintMessage(COLS-8, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, lineNumberStr)
-	PrintMessage(COLS-12, ROWS+1, STATUSFGCOLOR, STATUSBGCOLOR, "row")
+	PrintMessageStyle(COLS, ROWS+1, STATUSSTYLE, columnNumberStr)
+	PrintMessageStyle(COLS-4, ROWS+1, STATUSSTYLE, "col")
+	PrintMessageStyle(COLS-8, ROWS+1, STATUSSTYLE, lineNumberStr)
+	PrintMessageStyle(COLS-12, ROWS+1, STATUSSTYLE, "row")
 }
 
 func DisplayLineNumber(row int, textBufferRow int) {
@@ -72,11 +79,11 @@ func DisplayLineNumber(row int, textBufferRow int) {
 	lineNumberOffset := LINECOUNTWIDTH - len(lineNumberStr)
 	if lineNumberOffset > 0 {
 		for i := 0; i < lineNumberOffset; i++ {
-			termbox.SetCell(i, row, ' ', LINECOUNTFGCOLOR, LINECOUNTBGCOLOR)
+			TERMINAL.SetContent(i, row, ' ', nil, LINECOUNTSTYLE)
 		}
 	}
 
-	PrintMessage(lineNumberOffset, row, LINECOUNTFGCOLOR, LINECOUNTBGCOLOR, lineNumberStr)
+	PrintMessageStyle(lineNumberOffset, row, LINECOUNTSTYLE, lineNumberStr)
 }
 
 func DisplaySettingsLoop() {
