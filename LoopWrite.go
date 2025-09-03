@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/nsf/termbox-go"
 )
 
 func WriteLoop() {
 	TERMINAL.Clear()
 	DisplayBuffer()
 	DisplayStatus()
+	TERMINAL.ShowCursor(CURSORX, CURSORY)
 	TERMINAL.Show()
-
 	for {
 		event := TERMINAL.PollEvent()
 		switch ev := event.(type) {
@@ -65,7 +64,7 @@ func WriteLoop() {
 							}
 						}
 					}
-				case tcell.KeyBackspace:
+				case tcell.KeyBackspace, tcell.KeyBackspace2:
 					// If at the left edge and more to the left, scroll left before deleting
 					if CURSORX == LINECOUNTWIDTH && OFFSETX > 0 {
 						OFFSETX--
@@ -125,9 +124,6 @@ func WriteLoop() {
 						}
 					}
 				}
-			}
-			if mod == tcell.ModNone {
-
 			} else if mod == tcell.ModCtrl {
 
 			} else if mod == tcell.ModAlt {
@@ -155,6 +151,7 @@ func WriteLoop() {
 			TERMINAL.Clear()
 			DisplayBuffer()
 			DisplayStatus()
+			TERMINAL.ShowCursor(CURSORX, CURSORY)
 			TERMINAL.Show()
 		}
 	}
@@ -205,7 +202,7 @@ func insertRune(insertrune rune) {
 		CursorPosXinBuffer < 0 ||
 		CursorPosXinBuffer > len(TEXTBUFFER[CursorPosYinBuffer]) {
 		PrintMessage(0, 0, tcell.ColorBlack, tcell.ColorRed, "INSERT WAS NOT INBOUND")
-		termbox.PollEvent()
+		//termbox.PollEvent()
 		return
 	}
 

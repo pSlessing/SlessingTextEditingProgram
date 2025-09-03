@@ -63,7 +63,7 @@ func titleLoop() {
 		event := TERMINAL.PollEvent()
 		switch event.(type) {
 		case *tcell.EventKey:
-			break
+			return
 		}
 	}
 }
