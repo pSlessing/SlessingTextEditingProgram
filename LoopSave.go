@@ -14,8 +14,8 @@ func SaveAsLoop() string {
 		TERMINAL.Clear()
 		DisplayBuffer()
 		DisplayStatus()
-		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGSTYLE, "Save As:")
-		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGSTYLE, string(saveBuffer))
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), STYLES.MSGSTYLE, "Save As:")
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, STYLES.MSGSTYLE, string(saveBuffer))
 		TERMINAL.Show()
 
 		event := termbox.PollEvent()

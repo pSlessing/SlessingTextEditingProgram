@@ -40,7 +40,7 @@ func DisplayBuffer() {
 				textBufferCol < len(TEXTBUFFER[textBufferRow]) {
 				TERMINAL.SetContent(col+LINECOUNTWIDTH, row,
 					TEXTBUFFER[textBufferRow][textBufferCol],
-					nil, MAINSTYLE)
+					nil, STYLES.MAINSTYLE)
 			}
 		}
 	}
@@ -50,11 +50,11 @@ func DisplayStatus() {
 	var col int
 
 	for col = 0; col < COLS+LINECOUNTWIDTH; col++ {
-		TERMINAL.SetContent(col, ROWS+1, ' ', nil, STATUSSTYLE)
+		TERMINAL.SetContent(col, ROWS+1, ' ', nil, STYLES.STATUSSTYLE)
 		if col < len(INPUTBUFFER) {
 			TERMINAL.SetContent(col, ROWS+1,
 				INPUTBUFFER[col],
-				nil, STATUSSTYLE)
+				nil, STYLES.STATUSSTYLE)
 		}
 	}
 
@@ -63,10 +63,10 @@ func DisplayStatus() {
 	var currentColumn = CURSORX + OFFSETX - LINECOUNTWIDTH
 	var columnNumberStr = strconv.Itoa(currentColumn + 1)
 	// #TODO do the offsets more neat
-	PrintMessageStyle(COLS, ROWS+1, STATUSSTYLE, columnNumberStr)
-	PrintMessageStyle(COLS-4, ROWS+1, STATUSSTYLE, "col")
-	PrintMessageStyle(COLS-8, ROWS+1, STATUSSTYLE, lineNumberStr)
-	PrintMessageStyle(COLS-12, ROWS+1, STATUSSTYLE, "row")
+	PrintMessageStyle(COLS, ROWS+1, STYLES.STATUSSTYLE, columnNumberStr)
+	PrintMessageStyle(COLS-4, ROWS+1, STYLES.STATUSSTYLE, "col")
+	PrintMessageStyle(COLS-8, ROWS+1, STYLES.STATUSSTYLE, lineNumberStr)
+	PrintMessageStyle(COLS-12, ROWS+1, STYLES.STATUSSTYLE, "row")
 }
 
 func DisplayLineNumber(row int, textBufferRow int) {
@@ -79,11 +79,11 @@ func DisplayLineNumber(row int, textBufferRow int) {
 	lineNumberOffset := LINECOUNTWIDTH - len(lineNumberStr)
 	if lineNumberOffset > 0 {
 		for i := 0; i < lineNumberOffset; i++ {
-			TERMINAL.SetContent(i, row, ' ', nil, LINECOUNTSTYLE)
+			TERMINAL.SetContent(i, row, ' ', nil, STYLES.LINECOUNTSTYLE)
 		}
 	}
 
-	PrintMessageStyle(lineNumberOffset, row, LINECOUNTSTYLE, lineNumberStr)
+	PrintMessageStyle(lineNumberOffset, row, STYLES.LINECOUNTSTYLE, lineNumberStr)
 }
 
 func DisplaySettingsLoop() {

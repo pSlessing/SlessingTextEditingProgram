@@ -24,10 +24,23 @@ var TEXTBUFFER = [][]rune{
 var INPUTBUFFER []rune
 var LINECOUNTWIDTH = 3
 
-var MAINSTYLE = tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
-var STATUSSTYLE = tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
-var MSGSTYLE = tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
-var LINECOUNTSTYLE = tcell.StyleDefault.Foreground(tcell.ColorLightBlue).Background(tcell.ColorWhite)
+type StyleSet struct {
+    MAINSTYLE      tcell.Style
+    STATUSSTYLE    tcell.Style
+    MSGSTYLE       tcell.Style
+    LINECOUNTSTYLE tcell.Style
+}
+
+func (s *StyleSet) AsSlice() []tcell.Style {
+    return []tcell.Style{s.MAINSTYLE, s.STATUSSTYLE, s.MSGSTYLE, s.LINECOUNTSTYLE}
+}
+
+var STYLES = &StyleSet{
+    MAINSTYLE:      tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack),
+    STATUSSTYLE:    tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite),
+    MSGSTYLE:       tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite),
+    LINECOUNTSTYLE: tcell.StyleDefault.Foreground(tcell.ColorLightBlue).Background(tcell.ColorWhite),
+}
 var TERMINAL, bootErr = tcell.NewScreen()
 
 var MAXWIDTH = 78

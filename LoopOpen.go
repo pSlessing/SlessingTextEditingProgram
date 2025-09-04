@@ -12,8 +12,8 @@ func OpenLoop() {
 		TERMINAL.Clear()
 		DisplayBuffer()
 		DisplayStatus()
-		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), MSGSTYLE, "Open File:")
-		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, MSGSTYLE, string(openBuffer))
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS / 2), STYLES.MSGSTYLE, "Open File:")
+		PrintMessageStyle((COLS/2)-LINECOUNTWIDTH, (ROWS/2)+1, STYLES.MSGSTYLE, string(openBuffer))
 		TERMINAL.Show()
 
 		event := termbox.PollEvent()
