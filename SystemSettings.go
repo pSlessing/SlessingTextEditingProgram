@@ -138,19 +138,19 @@ func JSONToSettings(jsonStr string) (Settings, error) {
 
 // ApplySettings applies the loaded settings to the global color variables
 func ApplySettings(settings Settings) {
-	MAINSTYLE = tcell.StyleDefault.Background(settings.BGColor).Foreground(settings.FGColor)
-	STATUSSTYLE = tcell.StyleDefault.Background(settings.StatusBGColor).Foreground(settings.StatusFGColor)
-	MSGSTYLE = tcell.StyleDefault.Background(settings.MsgBGColor).Foreground(settings.MsgFGColor)
-	LINECOUNTSTYLE = tcell.StyleDefault.Background(settings.LineCountBGColor).Foreground(settings.LineCountFGColor)
+	STYLES.MAINSTYLE = tcell.StyleDefault.Background(settings.BGColor).Foreground(settings.FGColor)
+	STYLES.STATUSSTYLE = tcell.StyleDefault.Background(settings.StatusBGColor).Foreground(settings.StatusFGColor)
+	STYLES.MSGSTYLE = tcell.StyleDefault.Background(settings.MsgBGColor).Foreground(settings.MsgFGColor)
+	STYLES.LINECOUNTSTYLE = tcell.StyleDefault.Background(settings.LineCountBGColor).Foreground(settings.LineCountFGColor)
 
 }
 
 // GetCurrentSettings creates a Settings struct from the current global variables
 func GetCurrentSettings() Settings {
-	mainfg, mainbg, _ := MAINSTYLE.Decompose()
-	statusfg, statusbg, _ := STATUSSTYLE.Decompose()
-	msgfg, msgbg, _ := MSGSTYLE.Decompose()
-	linecountfg, linecountbg, _ := LINECOUNTSTYLE.Decompose()
+	mainfg, mainbg, _ := STYLES.MAINSTYLE.Decompose()
+	statusfg, statusbg, _ := STYLES.STATUSSTYLE.Decompose()
+	msgfg, msgbg, _ := STYLES.MSGSTYLE.Decompose()
+	linecountfg, linecountbg, _ := STYLES.LINECOUNTSTYLE.Decompose()
 	return Settings{
 		BGColor:          mainbg,
 		FGColor:          mainfg,
