@@ -3,9 +3,13 @@ package main
 import (
 	"strconv"
 
+	"reflect"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
+
+var structType = reflect.TypeOf(Settings{})
 
 // #TODO should this be able to use any, or standard colors every time?
 func PrintMessage(col, row int, fg, bg tcell.Color, msg string) {
@@ -86,10 +90,31 @@ func DisplayLineNumber(row int, textBufferRow int) {
 	PrintMessageStyle(lineNumberOffset, row, STYLES.LINECOUNTSTYLE, lineNumberStr)
 }
 
-func DisplaySettingsLoop() {
-
+func DisplaySettingsLoop(currentPos int) {
+	TERMINAL.SetContent(0, currentPos, ' ', nil, tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack))
+	styleList := STYLES.AsSlice()
+	for i := 0; i < len(styleList); i += 2 {
+		fgColor, bgColor, _ := styleList[i].Decompose()
+		PrintMessage(1, i, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i).Name)
+		PrintMessage(1, i+1, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i+1).Name)
+		PrintMessage(1, i, tcell.ColorWhite, tcell.ColorBlack, fgColor.Name())
+		PrintMessage(1, i+1, tcell.ColorWhite, tcell.ColorBlack, bgColor.Name())
+	}
 }
 
 func DisplayColorsLoop() {
-
+	styleList := STYLES.AsSlice()
+	//LineCount
+	PrintMessageStyle(0, len(styleList), STYLES.LINECOUNTSTYLE, "~1")
+	PrintMessageStyle(0, len(styleList)+1, STYLES.LINECOUNTSTYLE, "~2")
+	PrintMessageStyle(0, len(styleList)+2, STYLES.LINECOUNTSTYLE, "~3")
+	//Main
+	PrintMessageStyle(2, len(styleList)+0, STYLES.MAINSTYLE, "This is a piece of text! Some characters for testing: ! # ¤ % & / [] {}")
+	PrintMessageStyle(2, len(styleList)+1, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+2, STYLES.MAINSTYLE, "                                                                       ")
+	//Statusbar
+	PrintMessageStyle(0, len(styleList)+2, STYLES.STATUSSTYLE, "write                                                     row 0 col 0")
+	//MSG
+	PrintMessageStyle(30, len(styleList)+1, STYLES.MSGSTYLE, "Open file:")
+	PrintMessageStyle(30, len(styleList)+2, STYLES.MSGSTYLE, "file.txt  ")
 }
