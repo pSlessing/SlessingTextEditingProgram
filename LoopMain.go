@@ -208,7 +208,7 @@ func handleCommand() {
 	case "saveas", "sa":
 		SOURCEFILE = SaveAsLoop()
 	case "settings", "se":
-		//ChangeSettingsLoop()
+		ChangeSettingsLoop()
 	}
 	TERMINAL.Clear()
 	DisplayBuffer()

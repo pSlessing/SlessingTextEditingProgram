@@ -11,7 +11,7 @@ import (
 
 var structType = reflect.TypeOf(Settings{})
 
-// #TODO should this be able to use any, or standard colors every time?
+// PrintMessage #TODO: should this be able to use any, or standard colors every time?
 func PrintMessage(col, row int, fg, bg tcell.Color, msg string) {
 	for _, c := range msg {
 		currStyle := tcell.StyleDefault.Foreground(fg).Background(bg)
@@ -91,30 +91,42 @@ func DisplayLineNumber(row int, textBufferRow int) {
 }
 
 func DisplaySettingsLoop(currentPos int) {
+	//Offset between setting names and colors
+	colorOffset := 2
 	TERMINAL.SetContent(0, currentPos, ' ', nil, tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack))
 	styleList := STYLES.AsSlice()
-	for i := 0; i < len(styleList); i += 2 {
+	currDisplayRow := 0
+
+	for i := 0; i < len(styleList); i++ {
 		fgColor, bgColor, _ := styleList[i].Decompose()
-		PrintMessage(1, i, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i).Name)
-		PrintMessage(1, i+1, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i+1).Name)
-		PrintMessage(1, i, tcell.ColorWhite, tcell.ColorBlack, fgColor.Name())
-		PrintMessage(1, i+1, tcell.ColorWhite, tcell.ColorBlack, bgColor.Name())
+		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i).Name)
+		PrintMessage(1+len(structType.Field(i).Name)+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, fgColor.Name())
+		currDisplayRow++
+		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i+1).Name)
+		PrintMessage(1+len(structType.Field(i+1).Name)+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, bgColor.Name())
+		currDisplayRow++
 	}
 }
 
-func DisplayColorsLoop() {
+func DisplayColorsLoop(offset int) {
 	styleList := STYLES.AsSlice()
 	//LineCount
-	PrintMessageStyle(0, len(styleList), STYLES.LINECOUNTSTYLE, "~1")
-	PrintMessageStyle(0, len(styleList)+1, STYLES.LINECOUNTSTYLE, "~2")
-	PrintMessageStyle(0, len(styleList)+2, STYLES.LINECOUNTSTYLE, "~3")
+	PrintMessageStyle(0, len(styleList)+offset, STYLES.LINECOUNTSTYLE, "~1")
+	PrintMessageStyle(0, len(styleList)+1+offset, STYLES.LINECOUNTSTYLE, "~2")
+	PrintMessageStyle(0, len(styleList)+2+offset, STYLES.LINECOUNTSTYLE, "~3")
+	PrintMessageStyle(0, len(styleList)+3+offset, STYLES.LINECOUNTSTYLE, "~4")
+	PrintMessageStyle(0, len(styleList)+4+offset, STYLES.LINECOUNTSTYLE, "~5")
+	PrintMessageStyle(0, len(styleList)+5+offset, STYLES.LINECOUNTSTYLE, "~6")
 	//Main
-	PrintMessageStyle(2, len(styleList)+0, STYLES.MAINSTYLE, "This is a piece of text! Some characters for testing: ! # ¤ % & / [] {}")
-	PrintMessageStyle(2, len(styleList)+1, STYLES.MAINSTYLE, "                                                                       ")
-	PrintMessageStyle(2, len(styleList)+2, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+0+offset, STYLES.MAINSTYLE, "This is a piece of text! Some characters for testing: ! # ¤ % & / [] {}")
+	PrintMessageStyle(2, len(styleList)+1+offset, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+2+offset, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+3+offset, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+4+offset, STYLES.MAINSTYLE, "                                                                       ")
+	PrintMessageStyle(2, len(styleList)+5+offset, STYLES.MAINSTYLE, "                                                                       ")
 	//Statusbar
-	PrintMessageStyle(0, len(styleList)+2, STYLES.STATUSSTYLE, "write                                                     row 0 col 0")
+	PrintMessageStyle(0, len(styleList)+6+offset, STYLES.STATUSSTYLE, "write                                                     row 0 col 0")
 	//MSG
-	PrintMessageStyle(30, len(styleList)+1, STYLES.MSGSTYLE, "Open file:")
-	PrintMessageStyle(30, len(styleList)+2, STYLES.MSGSTYLE, "file.txt  ")
+	PrintMessageStyle(30, len(styleList)+3+offset, STYLES.MSGSTYLE, "Open file:")
+	PrintMessageStyle(30, len(styleList)+4+offset, STYLES.MSGSTYLE, "file.txt  ")
 }
