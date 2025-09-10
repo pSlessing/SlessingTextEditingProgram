@@ -125,7 +125,56 @@ func WriteLoop() {
 					}
 				}
 			} else if mod == tcell.ModCtrl {
-
+				switch key {
+				case tcell.KeyLeft:
+					if CURSORY+OFFSETY < len(TEXTBUFFER) && CURSORY+OFFSETY >= 0 {
+						// Only allow moving left if not at beginning of line
+						if CURSORX-LINECOUNTWIDTH+OFFSETX > 0 {
+							currChar := 'a'
+							// While loop here
+							for currChar != ' ' {
+								CURSORX--
+								// Horizontal scroll left if needed
+								if CURSORX <= 0 {
+									OFFSETX--
+									CURSORX = 1
+								}
+								// Check bounds before accessing array
+								currentPos := CURSORX - LINECOUNTWIDTH + OFFSETX
+								if currentPos <= 0 {
+									currChar = ' '
+									break
+								}
+								currChar = TEXTBUFFER[CURSORY+OFFSETY][currentPos-1]
+							}
+						}
+					}
+				case tcell.KeyRight:
+					if CURSORY+OFFSETY < len(TEXTBUFFER) {
+						// Only allow moving right if not past end of line
+						lineLen := len(TEXTBUFFER[CURSORY+OFFSETY])
+						if CURSORX-LINECOUNTWIDTH+OFFSETX < lineLen {
+							currChar := 'a'
+							// While loop here
+							for currChar != ' ' {
+								CURSORX++
+								// Horizontal scroll right if needed
+								if CURSORX >= COLS-LINECOUNTWIDTH {
+									OFFSETX++
+									CURSORX = COLS - LINECOUNTWIDTH - 1
+								}
+								// Check bounds before accessing array
+								currentPos := CURSORX - LINECOUNTWIDTH + OFFSETX
+								if currentPos >= lineLen {
+									currChar = ' '
+									break
+								}
+								currChar = TEXTBUFFER[CURSORY+OFFSETY][currentPos]
+							}
+						}
+					}
+				default:
+				}
 			} else if mod == tcell.ModAlt {
 
 			}
