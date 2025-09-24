@@ -97,13 +97,18 @@ func DisplaySettingsLoop(currentPos int) {
 	styleList := STYLES.AsSlice()
 	currDisplayRow := 0
 
+	// Define style names that match your actual styles
+	styleNames := []string{"Main", "Status", "Msg", "LineCount"}
+
 	for i := 0; i < len(styleList); i++ {
 		fgColor, bgColor, _ := styleList[i].Decompose()
-		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i).Name)
-		PrintMessage(1+len(structType.Field(i).Name)+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, fgColor.Name())
+		// Display background setting (this comes first based on your currentPos % 2 == 0 check)
+		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, styleNames[i]+" BG")
+		PrintMessage(1+len(styleNames[i])+len(" BG")+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, bgColor.Name())
 		currDisplayRow++
-		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, structType.Field(i+1).Name)
-		PrintMessage(1+len(structType.Field(i+1).Name)+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, bgColor.Name())
+		// Display foreground setting
+		PrintMessage(1, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, styleNames[i]+" FG")
+		PrintMessage(1+len(styleNames[i])+len(" FG")+colorOffset, currDisplayRow, tcell.ColorWhite, tcell.ColorBlack, fgColor.Name())
 		currDisplayRow++
 	}
 }
