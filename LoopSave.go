@@ -46,5 +46,4 @@ func SaveAsLoop() string {
 			}
 		}
 	}
-	return SOURCEFILE
 }
